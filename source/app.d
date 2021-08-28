@@ -5,6 +5,29 @@ import std.process : execute;
 import std.stdio : stdout;
 import std.string : format;
 
+enum FileType {
+	Zip,
+	SevenZip,
+	Binary,
+}
+
+FileType getFileType(string name) {
+	import std.stdio : File;
+
+	// Read first 10 bytes of file
+	auto f = File(name, "r");
+	char[10] header = 0;
+	f.rawRead(header);
+
+	// Return file type based on magic numbers
+	if (header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04]) {
+		return FileType.Zip;
+	} else if (header[0 .. 4] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]) {
+		return FileType.SevenZip;
+	} else {
+		return FileType.Binary;
+	}
+}
 
 void prints(string message) {
 	import std.stdio : stdout;
@@ -78,16 +101,6 @@ void compress(string name) {
 	}
 }
 
-char[10] readHeader(string name) {
-	import std.stdio : File;
-
-	// Read the file into an array
-	auto f = File(name, "r");
-	char[10] header = 0;
-	f.rawRead(header);
-	return header;
-}
-
 void fuck(string file_name) {
 	string temp_dir = "%s.extracted".format(file_name);
 	string out_file = "%s.7z".format(file_name);
@@ -112,25 +125,20 @@ void fuck(string file_name) {
 		name = name.replace(`\`, `/`);
 		//stdout.writefln("    name: %s", name); stdout.flush();
 
-		auto header = readHeader(name);
-		bool is_zip = header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04];
-		bool is_7z = header[0 .. 4] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C];
-		//stdout.writefln("is_zip:%s, is_7z: %s", is_zip, is_7z); stdout.flush();
+		auto file_type = getFileType(name);
+		final switch (file_type) {
+			case FileType.SevenZip:
+				break;
+			case FileType.Zip:
+				recompress(name);
 
-		// Ignore 7z
-		if (is_7z) {
-
-		// Reompress zips
-		} else if (is_zip) {
-			recompress(name);
-
-			// Delete the original zip
-			if (exists(name)) {
-				remove(name);
-			}
-		// Compress all other files
-		} else {
-			//compress(name);
+				// Delete the original zip
+				if (exists(name)) {
+					remove(name);
+				}
+				break;
+			case FileType.Binary:
+				break;
 		}
 	}
 
@@ -158,20 +166,16 @@ int main() {
 		name = name.replace(`\`, `/`);
 		stdout.writefln("scanning: %s", name); stdout.flush();
 
-		auto header = readHeader(name);
-		bool is_zip = header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04];
-		bool is_7z = header[0 .. 4] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C];
-		//stdout.writefln("is_zip:%s, is_7z: %s", is_zip, is_7z); stdout.flush();
-
-		// Ignore 7z
-		if (is_7z) {
-
-		// Reompress zips
-		} else if (is_zip) {
-			fuck(name);
-		// Compress all other files
-		} else {
-			compress(name);
+		auto file_type = getFileType(name);
+		final switch (file_type) {
+			case FileType.SevenZip:
+				break;
+			case FileType.Zip:
+				fuck(name);
+				break;
+			case FileType.Binary:
+				compress(name);
+				break;
 		}
 	}
 
