@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"matt"
+	],
+	"copyright": "Copyright © 2021, matt",
+	"description": "A minimal D application.",
+	"license": "proprietary",
+	"name": "makebinaries7z"
+}
