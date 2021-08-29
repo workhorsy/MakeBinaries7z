@@ -79,11 +79,7 @@ void recompressFile(string name) {
 
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, name);
-	auto unzip = execute(["7z", "x", name, "-o%s".format(temp_dir)]);
-	if (unzip.status != 0) {
-		stderr.writefln("%s", unzip.output); stderr.flush();
-	}
-	assert(unzip.status == 0);
+	uncompress(name, temp_dir);
 
 	recompressDir(temp_dir, false);
 
@@ -91,11 +87,7 @@ void recompressFile(string name) {
 	//prints("out_file: %s", out_file);
 	//prints("file_name: %s", file_name);
 	prints("%sCompressing: %s", padding, out_file);
-	auto zip = execute(["7z", "-t7z", compression_level, compression_multi_thread, "a", out_file, "%s.extracted".format(name)]);
-	if (zip.status != 0) {
-		stderr.writefln("%s", zip.output); stderr.flush();
-	}
-	assert(zip.status == 0);
+	compress(temp_dir, out_file);
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
@@ -137,11 +129,23 @@ void recompressDir(string path, bool is_root_dir) {
 
 void compress(string in_name, string out_name) {
 	//prints("%sCompressing: %s", padding, out_name);
-	auto zip = execute(["7z", "-t7z", compression_level, compression_multi_thread, "a", out_name, in_name]);
-	if (zip.status != 0) {
-		stderr.writefln("%s", zip.output); stderr.flush();
+	string[] command = ["7z", "-t7z", compression_level, compression_multi_thread, "a", out_name, in_name];
+	//prints("Running command: %s", command);
+	auto exe = execute(command);
+	if (exe.status != 0) {
+		stderr.writefln("%s", exe.output); stderr.flush();
 	}
-	assert(zip.status == 0);
+	assert(exe.status == 0);
+}
+
+void uncompress(string in_name, string out_name) {
+	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
+	//prints("Running command: %s", command);
+	auto exe = execute(command);
+	if (exe.status != 0) {
+		stderr.writefln("%s", exe.output); stderr.flush();
+	}
+	assert(exe.status == 0);
 }
 
 int main() {
