@@ -128,11 +128,20 @@ void recompressDir(string path, bool is_root_dir) {
 				break;
 			case FileType.Binary:
 				if (is_root_dir) {
-					//compress(name);
+					compress(name, "%s.7z".format(name));
 				}
 				break;
 		}
 	}
+}
+
+void compress(string in_name, string out_name) {
+	//prints("%sCompressing: %s", padding, out_name);
+	auto zip = execute(["7z", "-t7z", compression_level, compression_multi_thread, "a", out_name, in_name]);
+	if (zip.status != 0) {
+		stderr.writefln("%s", zip.output); stderr.flush();
+	}
+	assert(zip.status == 0);
 }
 
 int main() {
