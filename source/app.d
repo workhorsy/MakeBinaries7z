@@ -2,10 +2,12 @@
 import std.array : replace;
 import std.file : remove, rmdirRecurse, exists, chdir, dirEntries, SpanMode, isDir;
 import std.process : execute;
-import std.stdio : stdout;
+import std.stdio : stdout, stderr;
 import std.string : format;
 
 int g_scope_depth = 0;
+string compression_level = "-mx9";
+string compression_multi_thread = "-mmt=on";
 
 void prints(string message) {
 	import std.stdio : stdout;
@@ -78,15 +80,21 @@ void recompressFile(string name) {
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, name);
 	auto unzip = execute(["7z", "x", name, "-o%s".format(temp_dir)]);
+	if (unzip.status != 0) {
+		stderr.writefln("%s", unzip.output); stderr.flush();
+	}
 	assert(unzip.status == 0);
 
-	recompressDir(temp_dir);
+	recompressDir(temp_dir, false);
 
 	// Compress to 7z
 	//prints("out_file: %s", out_file);
 	//prints("file_name: %s", file_name);
 	prints("%sCompressing: %s", padding, out_file);
-	auto zip = execute(["7z", "a", out_file, "%s.extracted".format(name)]);
+	auto zip = execute(["7z", "-t7z", compression_level, compression_multi_thread, "a", out_file, "%s.extracted".format(name)]);
+	if (zip.status != 0) {
+		stderr.writefln("%s", zip.output); stderr.flush();
+	}
 	assert(zip.status == 0);
 
 	// Delete the temp directory
@@ -100,7 +108,7 @@ void recompressFile(string name) {
 	}
 }
 
-void recompressDir(string path) {
+void recompressDir(string path, bool is_root_dir) {
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
@@ -119,7 +127,9 @@ void recompressDir(string path) {
 				recompressFile(name);
 				break;
 			case FileType.Binary:
-				//compress(name);
+				if (is_root_dir) {
+					//compress(name);
+				}
 				break;
 		}
 	}
@@ -127,7 +137,7 @@ void recompressDir(string path) {
 
 int main() {
 	chdir("templates");
-	recompressDir(".");
+	recompressDir(".", true);
 
 	return 0;
 }
