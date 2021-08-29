@@ -1,9 +1,4 @@
 
-import std.array : replace;
-import std.file : remove, rmdirRecurse, exists, chdir, dirEntries, SpanMode, isDir;
-import std.process : execute;
-import std.stdio : stdout, stderr;
-import std.string : format;
 
 int g_scope_depth = 0;
 string compression_level = "-mx9";
@@ -53,13 +48,15 @@ FileType getFileType(string name) {
 }
 
 string getScopePadding() {
-	import std.range : repeat, take, chain;
+	import std.range : repeat, take;
 	import std.array : array, join;
-	import std.conv : to;
 	return "    ".repeat.take(g_scope_depth).array.join("");
 }
 
 void recompressFile(string name) {
+	import std.file : remove, rmdirRecurse, exists;
+	import std.string : format;
+
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
@@ -101,6 +98,10 @@ void recompressFile(string name) {
 }
 
 void recompressDir(string path, bool is_root_dir) {
+	import std.array : replace;
+	import std.file : dirEntries, SpanMode, isDir;
+	import std.string : format;
+
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
@@ -128,6 +129,9 @@ void recompressDir(string path, bool is_root_dir) {
 }
 
 void compress(string in_name, string out_name) {
+	import std.process : execute;
+	import std.stdio : stderr;
+
 	//prints("%sCompressing: %s", padding, out_name);
 	string[] command = ["7z", "-t7z", compression_level, compression_multi_thread, "a", out_name, in_name];
 	//prints("Running command: %s", command);
@@ -139,6 +143,10 @@ void compress(string in_name, string out_name) {
 }
 
 void uncompress(string in_name, string out_name) {
+	import std.process : execute;
+	import std.string : format;
+	import std.stdio : stderr;
+
 	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
 	//prints("Running command: %s", command);
 	auto exe = execute(command);
@@ -149,6 +157,8 @@ void uncompress(string in_name, string out_name) {
 }
 
 int main() {
+	import std.file : chdir;
+
 	chdir("templates");
 	recompressDir(".", true);
 
