@@ -99,7 +99,7 @@ void recompressFile(string name) {
 
 void recompressDir(string path, bool is_root_dir) {
 	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir;
+	import std.file : dirEntries, SpanMode, isDir, remove, rmdirRecurse, exists;
 	import std.string : format;
 
 	g_scope_depth++;
@@ -122,6 +122,11 @@ void recompressDir(string path, bool is_root_dir) {
 			case FileType.Binary:
 				if (is_root_dir) {
 					compress(name, "%s.7z".format(name));
+
+					// Delete the original binary file
+					if (exists(name)) {
+						remove(name);
+					}
 				}
 				break;
 		}
