@@ -5,6 +5,27 @@ import std.process : execute;
 import std.stdio : stdout;
 import std.string : format;
 
+int g_scope_depth = 0;
+
+void prints(string message) {
+	import std.stdio : stdout;
+	stdout.writeln(message); stdout.flush();
+}
+
+void prints(alias fmt, A...)(A args)
+if (isSomeString!(typeof(fmt))) {
+	import std.format : checkFormatException;
+
+	alias e = checkFormatException!(fmt, A);
+	static assert(!e, e.msg);
+	return prints(fmt, args);
+}
+
+void prints(Char, A...)(in Char[] fmt, A args) {
+	import std.stdio : stdout;
+	stdout.writefln(fmt, args); stdout.flush();
+}
+
 enum FileType {
 	Zip,
 	SevenZip,
@@ -22,39 +43,25 @@ FileType getFileType(string name) {
 	// Return file type based on magic numbers
 	if (header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04]) {
 		return FileType.Zip;
-	} else if (header[0 .. 4] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]) {
+	} else if (header[0 .. 6] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]) {
 		return FileType.SevenZip;
 	} else {
 		return FileType.Binary;
 	}
 }
 
-void prints(string message) {
-	import std.stdio : stdout;
-	debug {
-		stdout.writeln(message); stdout.flush();
-	}
+string getScopePadding() {
+	import std.range : repeat, take, chain;
+	import std.array : array, join;
+	import std.conv : to;
+	return "    ".repeat.take(g_scope_depth).array.join("");
 }
 
-void prints(alias fmt, A...)(A args)
-if (isSomeString!(typeof(fmt))) {
-	import std.format : checkFormatException;
+void recompressFile(string name) {
+	g_scope_depth++;
+	scope (exit) g_scope_depth--;
+	string padding = getScopePadding();
 
-	alias e = checkFormatException!(fmt, A);
-	static assert(!e, e.msg);
-	return prints(fmt, args);
-}
-
-void prints(Char, A...)(in Char[] fmt, A args) {
-	import std.stdio : stdout;
-	debug {
-		stdout.writefln(fmt, args); stdout.flush();
-	}
-}
-
-
-void recompress(string name) {
-	stdout.writefln("    recompressing: %s", name); stdout.flush();
 	string temp_dir = "%s.extracted".format(name);
 	string out_file = "%s.7z".format(name);
 
@@ -69,115 +76,58 @@ void recompress(string name) {
 	}
 
 	// Extract to temp directory
+	prints("%sUncompressing: %s", padding, name);
 	auto unzip = execute(["7z", "x", name, "-o%s".format(temp_dir)]);
 	assert(unzip.status == 0);
 
+	recompressDir(temp_dir);
+
 	// Compress to 7z
-	auto zip = execute(["7z", "a", out_file, temp_dir]);
+	//prints("out_file: %s", out_file);
+	//prints("file_name: %s", file_name);
+	prints("%sCompressing: %s", padding, out_file);
+	auto zip = execute(["7z", "a", out_file, "%s.extracted".format(name)]);
 	assert(zip.status == 0);
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
 	}
-}
 
-void compress(string name) {
-	stdout.writefln("    compressing: %s", name); stdout.flush();
-	string out_file = "%s.7z".format(name);
-
-	// Delete the out file
-	if (exists(out_file)) {
-		remove(out_file);
-	}
-
-	// Compress to 7z
-	auto zip = execute(["7z", "a", out_file, name]);
-	assert(zip.status == 0);
-
-	// Delete the original file
+	// Delete the original zip file
 	if (exists(name)) {
 		remove(name);
 	}
 }
 
-void fuck(string file_name) {
-	string temp_dir = "%s.extracted".format(file_name);
-	string out_file = "%s.7z".format(file_name);
+void recompressDir(string path) {
+	g_scope_depth++;
+	scope (exit) g_scope_depth--;
+	string padding = getScopePadding();
 
-	// Delete the out file
-	if (exists(out_file)) {
-		remove(out_file);
-	}
-
-	// Delete the temp directory
-	if (exists(temp_dir)) {
-		rmdirRecurse(temp_dir);
-	}
-
-	// Extract to temp directory
-	auto unzip = execute(["7z", "x", file_name, "-o%s".format(temp_dir)]);
-	assert(unzip.status == 0);
-
-	foreach (string name; dirEntries(temp_dir, SpanMode.depth)) {
-		if (isDir(name)) continue;
-
+	foreach (string name; dirEntries(path, SpanMode.depth)) {
 		name = name.replace(`\`, `/`);
-		//stdout.writefln("    name: %s", name); stdout.flush();
+		//prints("%sScanning: %s", padding, name);
+
+		if (isDir(name)) continue;
 
 		auto file_type = getFileType(name);
 		final switch (file_type) {
 			case FileType.SevenZip:
 				break;
 			case FileType.Zip:
-				recompress(name);
-
-				// Delete the original zip
-				if (exists(name)) {
-					remove(name);
-				}
+				recompressFile(name);
 				break;
 			case FileType.Binary:
+				//compress(name);
 				break;
 		}
-	}
-
-	// Compress to 7z
-	//prints("out_file: %s", out_file);
-	//prints("file_name: %s", file_name);
-	auto zip = execute(["7z", "a", out_file, "%s.extracted".format(file_name)]);
-	assert(zip.status == 0);
-
-	// Delete the temp directory
-	if (exists(temp_dir)) {
-		rmdirRecurse(temp_dir);
-	}
-
-	// Delete the original file
-	if (exists(file_name)) {
-		remove(file_name);
 	}
 }
 
 int main() {
 	chdir("templates");
-
-	foreach (string name; dirEntries(".", SpanMode.depth)) {
-		name = name.replace(`\`, `/`);
-		stdout.writefln("scanning: %s", name); stdout.flush();
-
-		auto file_type = getFileType(name);
-		final switch (file_type) {
-			case FileType.SevenZip:
-				break;
-			case FileType.Zip:
-				fuck(name);
-				break;
-			case FileType.Binary:
-				compress(name);
-				break;
-		}
-	}
+	recompressDir(".");
 
 	return 0;
 }
