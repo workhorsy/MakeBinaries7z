@@ -1,4 +1,5 @@
 
+module make_binaries_7z;
 
 int g_scope_depth = 0;
 string compression_level = "-mx9";
@@ -159,13 +160,4 @@ void uncompress(string in_name, string out_name) {
 		stderr.writefln("%s", exe.output); stderr.flush();
 	}
 	assert(exe.status == 0);
-}
-
-int main() {
-	import std.file : chdir;
-
-	chdir("templates");
-	recompressDir(".", true);
-
-	return 0;
 }
