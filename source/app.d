@@ -212,6 +212,8 @@ void compress(string in_name, string out_name, FileType file_type) {
 	import std.process : execute;
 	import std.stdio : stderr;
 	import std.array : array, join;
+	import std.string : format;
+	import std.file : isDir;
 
 	string compression_type;
 	final switch (file_type) {
@@ -224,6 +226,11 @@ void compress(string in_name, string out_name, FileType file_type) {
 		case FileType.Binary:
 			compression_type = "";
 			break;
+	}
+
+	// If compressing a directory, use the files in the directory
+	if (isDir(in_name)) {
+		in_name = "%s/*".format(in_name);
 	}
 
 	//prints("%sCompressing: %s", padding, out_name);
