@@ -6,7 +6,7 @@ unittest {
 	import make_binaries_7z;
 	import BDD;
 	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, chdir, mkdir;
+	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, chdir, mkdir, getSize;
 
 	describe("make-binaries-7z",
 		before(delegate() {
@@ -18,15 +18,7 @@ unittest {
 
 			// Copy test files to test dir
 			copyTree("test_data/", "temp_test_files/");
-		}),
-		after(delegate() {
-			if (exists("temp_test_files")) {
-				rmdirRecurse("temp_test_files");
-			}
-		}),
-		it("Should recompress files", delegate() {
 			chdir("temp_test_files");
-			scope (exit) chdir("..");
 
 			// Make sure the default files exists
 			"test_data/aaa".exists.shouldEqual(true);
@@ -35,7 +27,31 @@ unittest {
 			"test_data/aaa/bbb/xxx.zip".exists.shouldEqual(true);
 			"test_data/aaa/bbb.txt".exists.shouldEqual(true);
 			"test_data/aaa/bbb.zip".exists.shouldEqual(true);
+		}),
+		after(delegate() {
+			chdir("..");
+			if (exists("temp_test_files")) {
+				rmdirRecurse("temp_test_files");
+			}
+		}),
+		it("Should round trip files", delegate() {
 
+			ulong original_size = "test_data/aaa/bbb/ccc.zip".getSize;
+
+			// Recompress the test dir files
+			recompressDir(".", true);
+			"test_data/aaa/bbb/ccc.zip.7z".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(false);
+
+			unRecompressDir(".", true);
+			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip.7z".exists.shouldEqual(false);
+
+			//
+			ulong new_size = "test_data/aaa/bbb/ccc.zip".getSize;
+			new_size.shouldEqual(original_size);
+		}),
+		it("Should recompress files", delegate() {
 			// Recompress the test dir files
 			recompressDir(".", true);
 
