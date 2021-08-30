@@ -3,8 +3,8 @@
 
 
 unittest {
-	import make_binaries_7z;
 	import BDD;
+	import make_binaries_7z;
 	import std.array : replace;
 	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, chdir, mkdir, getSize;
 
@@ -78,3 +78,6 @@ void copyTree(string from_path, string to_path) {
 	}
 	assert(exe.status == 0);
 }
+
+// FIXME: This should not be needed
+void main() {}

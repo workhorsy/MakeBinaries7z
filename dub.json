@@ -1,28 +1,29 @@
 {
 	"name": "makebinaries7z",
-	"description": "Recompress directories of files to 7z",
+	"description": "Recompresses directories of files to 7z",
 	"authors": [
 		"Matthew Brennan Jones <matthew.brennan.jones@gmail.com>"
 	],
 	"homepage": "https://github.com/workhorsy/MakeBinaries7z",
 	"copyright": "Copyright (c) 2021 Matthew Brennan Jones",
 	"license": "BSL-1.0",
-	"targetPath": "lib",
-	"targetType": "staticLibrary",
+	"targetPath": "build",
 
 	"configurations": [
 		{
 			"name": "default",
-			"targetName": "make-binaries-7z",
+			"targetType": "executable",
+			"targetName": "make_binaries_7z",
 			"importPaths": ["source/"],
-			"dependencies": {
-			}
+			"mainSourceFile": "source/main.d"
 		},
 		{
 			"name": "unittest",
-			"targetName": "make-binaries-7z-test",
-			"importPaths": ["source/", "test/"],
-			"sourceFiles": ["test/test.d"],
+			"targetType": "executable",
+			"targetName": "make_binaries_7z_test",
+			"importPaths": ["source/"],
+			"excludedSourceFiles": ["source/main.d"],
+			"mainSourceFile": "test/test.d",
 			"dependencies": {
 				"bdd": "~>3.1.0"
 			}
