@@ -26,6 +26,7 @@ unittest {
 		}),
 		it("Should recompress files", delegate() {
 			chdir("temp_test_files");
+			scope (exit) chdir("..");
 
 			// Make sure the default files exists
 			"test_data/aaa".exists.shouldEqual(true);
@@ -37,7 +38,6 @@ unittest {
 
 			// Recompress the test dir files
 			recompressDir(".", true);
-			//chdir("..");
 
 			// Make sure the files have been recompressed
 			"test_data/aaa".exists.shouldEqual(true);
