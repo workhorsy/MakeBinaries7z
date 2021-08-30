@@ -62,7 +62,7 @@ void recompressFile(string name) {
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
 
-	string temp_dir = "%s.extracted".format(name);
+	string temp_dir = "%s.xxx".format(name);
 	string out_file = "%s.7z".format(name);
 
 	// Delete the out file
@@ -106,7 +106,7 @@ void unRecompressFile(string name) {
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
 
-	string extracted_dir = "%s.extracted".format(name);
+	string extracted_dir = "%s.xxx".format(name);
 	string to_file = name[0 .. $-3];
 	string from_file = name;
 
