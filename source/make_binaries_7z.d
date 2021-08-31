@@ -72,8 +72,6 @@ void recompressFile(string name) {
 	recompressDir(temp_dir, false);
 
 	// Compress to 7z
-	//prints("out_file: %s", out_file);
-	//prints("file_name: %s", file_name);
 	prints("%sCompressing: %s", padding, out_file);
 	compress(temp_dir, out_file, FileType.SevenZip);
 
@@ -96,35 +94,32 @@ void unRecompressFile(string name) {
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
 
-	string extracted_dir = "%s.xxx".format(name);
-	string to_file = name[0 .. $-3];
-	string from_file = name;
+	string temp_dir = "%s.xxx".format(name);
+	string out_file = name[0 .. $-3];
 
 	// Delete the out file
-	if (exists(to_file)) {
-		remove(to_file);
+	if (exists(out_file)) {
+		remove(out_file);
 	}
 
 	// Delete the temp directory
-	if (exists(extracted_dir)) {
-		rmdirRecurse(extracted_dir);
+	if (exists(temp_dir)) {
+		rmdirRecurse(temp_dir);
 	}
 
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, name);
-	uncompress(name, extracted_dir);
+	uncompress(name, temp_dir);
 
-	unRecompressDir(extracted_dir, false);
+	unRecompressDir(temp_dir, false);
 
 	// Compress to 7z
-	//prints("to_file: %s", to_file);
-	//prints("file_name: %s", file_name);
-	prints("%sCompressing: %s", padding, to_file);
-	compress(extracted_dir, to_file, FileType.Zip);
+	prints("%sCompressing: %s", padding, out_file);
+	compress(temp_dir, out_file, FileType.Zip);
 
 	// Delete the temp directory
-	if (exists(extracted_dir)) {
-		rmdirRecurse(extracted_dir);
+	if (exists(temp_dir)) {
+		rmdirRecurse(temp_dir);
 	}
 
 	// Delete the original zip file
