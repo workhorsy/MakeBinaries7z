@@ -46,6 +46,7 @@ example() {
 	set -x
 	dub build --compiler=$DC
 	rm -f -rf temp_test_files
+	#cp -r templates_backup temp_test_files
 	cp -r test_data temp_test_files
 	./build/make_binaries_7z.exe --pack temp_test_files
 	./build/make_binaries_7z.exe --unpack temp_test_files

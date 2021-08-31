@@ -51,10 +51,7 @@ void recompressFile(string name) {
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
-
-	string temp_dir = "%s.xxx".format(name);
-	string out_file = "%s.7z".format(name);
-
+/*
 	// Delete the out file
 	if (exists(out_file)) {
 		remove(out_file);
@@ -64,16 +61,26 @@ void recompressFile(string name) {
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
 	}
+*/
+	string full_path = absolutePath(name);
+	string path = pathDirName(full_path);
+	string file_name = pathBaseName(full_path);
+	string temp_dir = "%s.xxx".format(file_name);
+	string out_file = "%s.7z".format(file_name);
+	string prev_dir = getcwd();
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, name);
-	uncompress(name, temp_dir);
+	prints("%sUncompressing: %s", padding, file_name);
+	chdir(path);
+	uncompress(file_name, temp_dir);
 
 	recompressDir(temp_dir, false);
 
 	// Compress to 7z
 	prints("%sCompressing: %s", padding, out_file);
-	compress(temp_dir, out_file, FileType.SevenZip);
+	chdir(temp_dir);
+	compress("*", "../%s".format(out_file), FileType.SevenZip);
+	chdir("..");
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
@@ -81,22 +88,21 @@ void recompressFile(string name) {
 	}
 
 	// Delete the original zip file
-	if (exists(name)) {
-		remove(name);
+	if (exists(file_name)) {
+		remove(file_name);
 	}
+
+	chdir(prev_dir);
 }
 
 void unRecompressFile(string name) {
 	import std.file : remove, rmdirRecurse, exists;
-	import std.string : format;
+	import std.string : format, stripRight;
 
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
-
-	string temp_dir = "%s.xxx".format(name);
-	string out_file = name[0 .. $-3];
-
+/*
 	// Delete the out file
 	if (exists(out_file)) {
 		remove(out_file);
@@ -106,26 +112,38 @@ void unRecompressFile(string name) {
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
 	}
+*/
+	string full_path = absolutePath(name);
+	string path = pathDirName(full_path);
+	string file_name = pathBaseName(full_path);
+	string temp_dir = "%s.xxx".format(file_name);
+	string out_file = "%s.zip".format(file_name.stripRight(".zip.7z"));
+	string prev_dir = getcwd();
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, name);
-	uncompress(name, temp_dir);
+	prints("%sUncompressing: %s", padding, file_name);
+	chdir(path);
+	uncompress(file_name, temp_dir);
 
 	unRecompressDir(temp_dir, false);
 
 	// Compress to 7z
 	prints("%sCompressing: %s", padding, out_file);
-	compress(temp_dir, out_file, FileType.Zip);
+	chdir(temp_dir);
+	compress("*", "../%s".format(out_file), FileType.Zip);
+	chdir("..");
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
 	}
 
-	// Delete the original zip file
-	if (exists(name)) {
-		remove(name);
+	// Delete the original 7z file
+	if (exists(file_name)) {
+		remove(file_name);
 	}
+
+	chdir(prev_dir);
 }
 
 void recompressDir(string path, bool is_root_dir) {
@@ -196,6 +214,7 @@ void compress(string in_name, string out_name, FileType file_type) {
 	import std.process : execute;
 	import std.string : format;
 	import std.file : isDir;
+	import std.array : join;
 
 	string compression_type;
 	final switch (file_type) {
@@ -208,11 +227,6 @@ void compress(string in_name, string out_name, FileType file_type) {
 		case FileType.Binary:
 			compression_type = "";
 			break;
-	}
-
-	// If compressing a directory, use the files in the directory
-	if (isDir(in_name)) {
-		in_name = "%s/*".format(in_name);
 	}
 
 	//prints("%sCompressing: %s", padding, out_name);
