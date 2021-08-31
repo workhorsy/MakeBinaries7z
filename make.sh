@@ -22,7 +22,7 @@ fi
 
 clean() {
 	set -x
-	rm -f -rf temp_test_data
+	rm -f -rf temp_test_files
 	rm -f -rf .dub/
 	rm -f dub.selections.json
 	rm -f *.exe
@@ -45,10 +45,10 @@ build() {
 example() {
 	set -x
 	dub build --compiler=$DC
-	rm -f -rf temp_test_data
-	cp -r test_data temp_test_data
-	./build/make_binaries_7z.exe --pack temp_test_data
-	./build/make_binaries_7z.exe --unpack temp_test_data
+	rm -f -rf temp_test_files
+	cp -r test_data temp_test_files
+	./build/make_binaries_7z.exe --pack temp_test_files
+	./build/make_binaries_7z.exe --unpack temp_test_files
 	set +x
 }
 
