@@ -10,13 +10,12 @@ import make_binaries_7z;
 
 int main(string[] args) {
 	import std.stdio : stdout, stderr, File;
-	import std.file : chdir, getcwd;
 	import std.file : exists;
 	import std.getopt : getopt, config, GetOptException;
-	import helpers : dirName, buildPath, toPosixPath, absolutePath;
+	import helpers : pathDirName, toPosixPath, absolutePath;
 
 	// Change the dir to the location of the current exe
-	//chdir(dirName(args[0]));
+	//chdir(pathDirName(args[0]));
 
 	// Get the options
 	string pack_path = null;

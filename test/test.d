@@ -9,8 +9,7 @@ unittest {
 	import BDD;
 	import helpers;
 	import make_binaries_7z;
-	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, chdir, mkdir, getSize;
+	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, mkdir, getSize;
 
 	describe("make-binaries-7z",
 		before(delegate() {
@@ -21,7 +20,7 @@ unittest {
 			mkdir("temp_test_files");
 
 			// Copy test files to test dir
-			copyTree("test_data/", "temp_test_files/");
+			copyDirTree("test_data/", "temp_test_files/");
 			chdir("temp_test_files");
 
 			// Make sure the default files exists

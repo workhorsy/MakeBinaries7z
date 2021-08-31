@@ -135,7 +135,7 @@ void unRecompressFile(string name) {
 
 void recompressDir(string path, bool is_root_dir) {
 	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir, remove, rmdirRecurse, exists;
+	import std.file : dirEntries, SpanMode, isDir, remove, exists;
 	import std.string : format;
 
 	g_scope_depth++;
@@ -171,8 +171,7 @@ void recompressDir(string path, bool is_root_dir) {
 
 void unRecompressDir(string path, bool is_root_dir) {
 	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir, remove, rmdirRecurse, exists;
-	import std.string : format;
+	import std.file : dirEntries, SpanMode, isDir;
 	import std.algorithm.searching : endsWith;
 
 	g_scope_depth++;
@@ -201,7 +200,6 @@ void unRecompressDir(string path, bool is_root_dir) {
 void compress(string in_name, string out_name, FileType file_type) {
 	import std.process : execute;
 	import std.stdio : stderr;
-	import std.array : array, join;
 	import std.string : format;
 	import std.file : isDir;
 
@@ -237,7 +235,7 @@ void uncompress(string in_name, string out_name) {
 	import std.process : execute;
 	import std.string : format;
 	import std.stdio : stderr;
-	import std.array : array, join;
+	import std.array : join;
 
 	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
 	//prints("Running command: %s", command.join(" "));

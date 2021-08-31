@@ -30,7 +30,7 @@ void prints(Char, A...)(in Char[] fmt, A args) {
 	stdout.writefln(fmt, args); stdout.flush();
 }
 
-void copyTree(string from_path, string to_path) {
+void copyDirTree(string from_path, string to_path) {
 	import std.process : execute;
 	import std.stdio : stderr;
 
@@ -72,13 +72,13 @@ string buildPath(string[] args ...) {
 	return buildPath(args).replace(`\`, `/`);
 }
 
-string baseName(string path) {
+string pathBaseName(string path) {
 	import std.path : baseName;
 	import std.array : replace;
 	return baseName(path).replace(`\`, `/`);
 }
 
-string dirName(string path) {
+string pathDirName(string path) {
 	import std.path : dirName;
 	import std.array : replace;
 	return dirName(path).replace(`\`, `/`);
