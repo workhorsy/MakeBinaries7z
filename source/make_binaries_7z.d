@@ -199,7 +199,6 @@ void unRecompressDir(string path, bool is_root_dir) {
 
 void compress(string in_name, string out_name, FileType file_type) {
 	import std.process : execute;
-	import std.stdio : stderr;
 	import std.string : format;
 	import std.file : isDir;
 
@@ -226,7 +225,7 @@ void compress(string in_name, string out_name, FileType file_type) {
 	//prints("Running command: %s", command.join(" "));
 	auto exe = execute(command);
 	if (exe.status != 0) {
-		stderr.writefln("%s", exe.output); stderr.flush();
+		prints_error("%s", exe.output);
 	}
 	assert(exe.status == 0);
 }
@@ -234,14 +233,13 @@ void compress(string in_name, string out_name, FileType file_type) {
 void uncompress(string in_name, string out_name) {
 	import std.process : execute;
 	import std.string : format;
-	import std.stdio : stderr;
 	import std.array : join;
 
 	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
 	//prints("Running command: %s", command.join(" "));
 	auto exe = execute(command);
 	if (exe.status != 0) {
-		stderr.writefln("%s", exe.output); stderr.flush();
+		prints_error("%s", exe.output);
 	}
 	assert(exe.status == 0);
 }

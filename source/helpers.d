@@ -30,15 +30,33 @@ void prints(Char, A...)(in Char[] fmt, A args) {
 	stdout.writefln(fmt, args); stdout.flush();
 }
 
+void prints_error(string message) {
+	import std.stdio : stderr;
+	stderr.writeln(message); stderr.flush();
+}
+
+void prints_error(alias fmt, A...)(A args)
+if (isSomeString!(typeof(fmt))) {
+	import std.format : checkFormatException;
+
+	alias e = checkFormatException!(fmt, A);
+	static assert(!e, e.msg);
+	return prints_error(fmt, args);
+}
+
+void prints_error(Char, A...)(in Char[] fmt, A args) {
+	import std.stdio : stderr;
+	stderr.writefln(fmt, args); stderr.flush();
+}
+
 void copyDirTree(string from_path, string to_path) {
 	import std.process : execute;
-	import std.stdio : stderr;
 
 	string[] command = ["cp", "-r", from_path, to_path];
 	//prints("Running command: %s", command);
 	auto exe = execute(command);
 	if (exe.status != 0) {
-		stderr.writefln("%s", exe.output); stderr.flush();
+		prints_error("%s", exe.output);
 	}
 	assert(exe.status == 0);
 }

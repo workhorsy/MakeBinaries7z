@@ -9,10 +9,9 @@ import make_binaries_7z;
 
 
 int main(string[] args) {
-	import std.stdio : stdout, stderr, File;
 	import std.file : exists;
-	import std.getopt : getopt, config, GetOptException;
-	import helpers : pathDirName, toPosixPath, absolutePath;
+	import std.getopt : getopt;
+	import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
 
 	// Change the dir to the location of the current exe
 	//chdir(pathDirName(args[0]));
@@ -34,14 +33,14 @@ int main(string[] args) {
 
 	// If there was an error, print the help and quit
 	if (is_help) {
-		stderr.writefln(
+		prints_error(
 		"Make Binaries 7z\n" ~
 		"--pack            Directory to re compress. Required:\n" ~
 		"--unpack          Directory to un re compress. Required:\n" ~
-		"--help            This help information.\n"); stderr.flush();
+		"--help            This help information.\n");
 
 		if (getopt_error) {
-			stderr.writefln("Error: %s", getopt_error); stderr.flush();
+			prints_error("Error: %s", getopt_error);
 		}
 		return 1;
 	}
@@ -50,7 +49,7 @@ int main(string[] args) {
 	if (pack_path) {
 		pack_path = toPosixPath(pack_path);
 		if (! exists(pack_path)) {
-			stderr.writefln(`Error: pack path not found: %s`, pack_path); stderr.flush();
+			prints_error(`Error: pack path not found: %s`, pack_path);
 			return 1;
 		}
 	}
@@ -59,7 +58,7 @@ int main(string[] args) {
 	if (unpack_path) {
 		unpack_path = toPosixPath(unpack_path);
 		if (! exists(unpack_path)) {
-			stderr.writefln(`Error: unpack path not found: %s`, unpack_path); stderr.flush();
+			prints_error(`Error: unpack path not found: %s`, unpack_path);
 			return 1;
 		}
 	}
@@ -72,7 +71,7 @@ int main(string[] args) {
 		//prints("!!! unpack_path: %s", unpack_path);
 		unRecompressDir(unpack_path, true);
 	} else {
-		stderr.writefln(`Error: unpack or pack path required`); stderr.flush();
+		prints_error(`Error: unpack or pack path required`);
 		return 1;
 	}
 
