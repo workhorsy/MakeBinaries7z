@@ -1,3 +1,8 @@
+// Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
+// Boost Software License - Version 1.0
+// Recompresses directories of files to 7z
+// https://github.com/workhorsy/MakeBinaries7z
+
 
 module make_binaries_7z;
 

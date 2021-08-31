@@ -22,6 +22,7 @@ fi
 
 clean() {
 	set -x
+	rm -f -rf temp_test_data
 	rm -f -rf .dub/
 	rm -f dub.selections.json
 	rm -f *.exe
@@ -41,10 +42,22 @@ build() {
 	set +x
 }
 
+example() {
+	set -x
+	dub build --compiler=$DC
+	rm -f -rf temp_test_data
+	cp -r test_data temp_test_data
+	./build/make_binaries_7z.exe --pack temp_test_data
+	./build/make_binaries_7z.exe --unpack temp_test_data
+	set +x
+}
+
 if [[ "$1" == "build" ]]; then
 	build
 elif [[ "$1" == "test" ]]; then
 	test
+elif [[ "$1" == "example" ]]; then
+	example
 elif [[ "$1" == "clean" ]]; then
 	clean
 else
