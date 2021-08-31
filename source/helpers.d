@@ -10,18 +10,6 @@ import std.traits : isSomeString;
 public import std.file : SpanMode;
 public import std.file : DirIterator;
 
-string _root_path = null;
-
-void reset_path(string project_path) {
-	import std.file : chdir;
-	import helpers : getcwd, buildPath;
-
-	if (! _root_path) {
-		_root_path = getcwd();
-	}
-
-	chdir(buildPath(_root_path, project_path));
-}
 
 void prints(string message) {
 	import std.stdio : stdout;
