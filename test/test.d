@@ -7,6 +7,7 @@
 
 unittest {
 	import BDD;
+	import helpers;
 	import make_binaries_7z;
 	import std.array : replace;
 	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, chdir, mkdir, getSize;
@@ -67,19 +68,6 @@ unittest {
 			"test_data/aaa/bbb.zip.7z".exists.shouldEqual(true);
 		}),
 	);
-}
-
-void copyTree(string from_path, string to_path) {
-	import std.process : execute;
-	import std.stdio : stderr;
-
-	string[] command = ["cp", "-r", from_path, to_path];
-	//prints("Running command: %s", command);
-	auto exe = execute(command);
-	if (exe.status != 0) {
-		stderr.writefln("%s", exe.output); stderr.flush();
-	}
-	assert(exe.status == 0);
 }
 
 // FIXME: This should not be needed

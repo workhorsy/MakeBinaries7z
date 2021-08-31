@@ -6,28 +6,13 @@
 
 module make_binaries_7z;
 
+import helpers;
+
 int g_scope_depth = 0;
 string compression_level = "-mx9";
 string compression_multi_thread = "-mmt=on";
 
-void prints(string message) {
-	import std.stdio : stdout;
-	stdout.writeln(message); stdout.flush();
-}
 
-void prints(alias fmt, A...)(A args)
-if (isSomeString!(typeof(fmt))) {
-	import std.format : checkFormatException;
-
-	alias e = checkFormatException!(fmt, A);
-	static assert(!e, e.msg);
-	return prints(fmt, args);
-}
-
-void prints(Char, A...)(in Char[] fmt, A args) {
-	import std.stdio : stdout;
-	stdout.writefln(fmt, args); stdout.flush();
-}
 
 enum FileType {
 	Zip,

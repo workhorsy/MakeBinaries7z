@@ -23,6 +23,38 @@ void reset_path(string project_path) {
 	chdir(buildPath(_root_path, project_path));
 }
 
+void prints(string message) {
+	import std.stdio : stdout;
+	stdout.writeln(message); stdout.flush();
+}
+
+void prints(alias fmt, A...)(A args)
+if (isSomeString!(typeof(fmt))) {
+	import std.format : checkFormatException;
+
+	alias e = checkFormatException!(fmt, A);
+	static assert(!e, e.msg);
+	return prints(fmt, args);
+}
+
+void prints(Char, A...)(in Char[] fmt, A args) {
+	import std.stdio : stdout;
+	stdout.writefln(fmt, args); stdout.flush();
+}
+
+void copyTree(string from_path, string to_path) {
+	import std.process : execute;
+	import std.stdio : stderr;
+
+	string[] command = ["cp", "-r", from_path, to_path];
+	//prints("Running command: %s", command);
+	auto exe = execute(command);
+	if (exe.status != 0) {
+		stderr.writefln("%s", exe.output); stderr.flush();
+	}
+	assert(exe.status == 0);
+}
+
 // FIXME: Have it change all path seps from \ to /
 DirIterator dirEntries(string path, SpanMode mode, bool followSymlink = true) {
 	import std.file : dirEntries;
