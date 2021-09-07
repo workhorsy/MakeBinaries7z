@@ -67,7 +67,7 @@ void recompressFile(string name) {
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
 	string out_file = "%s.7z".format(file_name);
-	string prev_dir = getcwd();
+	string prev_dir = getcwd().absolutePath();
 
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, file_name);
@@ -118,7 +118,7 @@ void unRecompressFile(string name) {
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
 	string out_file = "%s.zip".format(file_name.stripRight(".zip.7z"));
-	string prev_dir = getcwd();
+	string prev_dir = getcwd().absolutePath();
 
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, file_name);
@@ -170,7 +170,14 @@ void recompressDir(string path, bool is_root_dir) {
 				break;
 			case FileType.Binary:
 				if (is_root_dir) {
-					compress(name, "%s.7z".format(name), FileType.SevenZip);
+					string prev_dir = getcwd().absolutePath();
+					string dir_name = pathDirName(name);
+					string file_name = pathBaseName(name);
+					//prints("!!!!! dir_name: %s", dir_name);
+					//prints("!!!!! file_name: %s", file_name);
+					chdir(dir_name);
+					compress(file_name, "%s.7z".format(file_name), FileType.SevenZip);
+					chdir(prev_dir);
 
 					// Delete the original binary file
 					if (exists(name)) {

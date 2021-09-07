@@ -38,16 +38,16 @@ test() {
 
 build() {
 	set -x
-	dub build --compiler=$DC
+	dub build --compiler=$DC --build=debug
 	set +x
 }
 
 example() {
 	set -x
-	dub build --compiler=$DC
+	dub build --compiler=$DC --build=debug
 	rm -f -rf temp_test_files
-	#cp -r templates_backup temp_test_files
-	cp -r test_data temp_test_files
+	cp -r templates_backup temp_test_files
+	#cp -r test_data temp_test_files
 	./build/make_binaries_7z.exe --pack temp_test_files
 	./build/make_binaries_7z.exe --unpack temp_test_files
 	set +x
