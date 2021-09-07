@@ -43,12 +43,12 @@ unittest {
 
 			// Recompress the test dir files
 			recompressDir(".", true);
-			"test_data/aaa/bbb/ccc.zip.7z".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(false);
 
 			unRecompressDir(".", true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(true);
-			"test_data/aaa/bbb/ccc.zip.7z".exists.shouldEqual(false);
+			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(false);
 
 			//
 			ulong new_size = "test_data/aaa/bbb/ccc.zip".getSize;
@@ -61,10 +61,10 @@ unittest {
 			// Make sure the files have been recompressed
 			"test_data/aaa".exists.shouldEqual(true);
 			"test_data/aaa/bbb".exists.shouldEqual(true);
-			"test_data/aaa/bbb/ccc.zip.7z".exists.shouldEqual(true);
-			"test_data/aaa/bbb/xxx.zip.7z".exists.shouldEqual(true);
-			"test_data/aaa/bbb.txt.7z".exists.shouldEqual(true);
-			"test_data/aaa/bbb.zip.7z".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb/xxx.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb.txt.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb.zip.smol".exists.shouldEqual(true);
 		}),
 	);
 }

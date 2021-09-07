@@ -66,7 +66,7 @@ void recompressFile(string name) {
 	string path = pathDirName(full_path);
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
-	string out_file = "%s.7z".format(file_name);
+	string out_file = "%s.smol".format(file_name);
 	string prev_dir = getcwd().absolutePath();
 
 	// Extract to temp directory
@@ -117,7 +117,7 @@ void unRecompressFile(string name) {
 	string path = pathDirName(full_path);
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
-	string out_file = "%s.zip".format(file_name.stripRight(".zip.7z"));
+	string out_file = "%s".format(file_name.stripRight(".smol"));
 	string prev_dir = getcwd().absolutePath();
 
 	// Extract to temp directory
@@ -176,7 +176,7 @@ void recompressDir(string path, bool is_root_dir) {
 					//prints("!!!!! dir_name: %s", dir_name);
 					//prints("!!!!! file_name: %s", file_name);
 					chdir(dir_name);
-					compress(file_name, "%s.7z".format(file_name), FileType.SevenZip);
+					compress(file_name, "%s.smol".format(file_name), FileType.SevenZip);
 					chdir(prev_dir);
 
 					// Delete the original binary file
@@ -202,7 +202,7 @@ void unRecompressDir(string path, bool is_root_dir) {
 		name = name.replace(`\`, `/`);
 		//prints("%sScanning: %s", padding, name);
 
-		if (isDir(name) || ! name.endsWith(".7z")) continue;
+		if (isDir(name) || ! name.endsWith(".smol")) continue;
 
 		auto file_type = getFileType(name);
 		final switch (file_type) {
