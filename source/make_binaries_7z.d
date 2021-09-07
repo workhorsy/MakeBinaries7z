@@ -20,6 +20,17 @@ enum FileType {
 	Binary,
 }
 
+string fileExtensionForType(FileType file_type) {
+	final switch (file_type) {
+		case FileType.SevenZip:
+			return ".7z.smol";
+		case FileType.Zip:
+			return ".zip.smol";
+		case FileType.Binary:
+			return ".bin.smol";
+	}
+}
+
 FileType getFileType(string name) {
 	import std.stdio : File;
 
@@ -44,7 +55,7 @@ string getScopePadding() {
 	return "    ".repeat.take(g_scope_depth).array.join("");
 }
 
-void recompressFile(string name) {
+void recompressFile(string name, FileType file_type) {
 	import std.file : remove, rmdirRecurse, exists;
 	import std.string : format;
 
@@ -66,7 +77,7 @@ void recompressFile(string name) {
 	string path = pathDirName(full_path);
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
-	string out_file = "%s.smol".format(file_name);
+	string out_file = "%s%s".format(file_name, fileExtensionForType(file_type));
 	string prev_dir = getcwd().absolutePath();
 
 	// Extract to temp directory
@@ -97,7 +108,9 @@ void recompressFile(string name) {
 
 void unRecompressFile(string name) {
 	import std.file : remove, rmdirRecurse, exists;
-	import std.string : format, stripRight;
+	import std.string : format, stripRight, endsWith;
+	import std.traits : EnumMembers;
+	import std.file : rename;
 
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
@@ -113,12 +126,26 @@ void unRecompressFile(string name) {
 		rmdirRecurse(temp_dir);
 	}
 */
+	string prev_dir = getcwd().absolutePath();
 	string full_path = absolutePath(name);
 	string path = pathDirName(full_path);
 	string file_name = pathBaseName(full_path);
 	string temp_dir = "%s.xxx".format(file_name);
-	string out_file = "%s".format(file_name.stripRight(".smol"));
-	string prev_dir = getcwd().absolutePath();
+
+	// Get the original file name and type based on the .blah.smol
+	string out_file = "";
+	FileType file_type;
+	foreach (n ; EnumMembers!FileType) {
+		string extension = fileExtensionForType(n);
+		if (file_name.endsWith(extension)) {
+			out_file = "%s".format(file_name.stripRight(extension));
+			file_type = n;
+			break;
+		}
+	}
+
+//	prints("!!!!! file_name: %s", file_name);
+//	prints("!!!!! file_type: %s", fileExtensionForType(file_type));
 
 	// Extract to temp directory
 	prints("%sUncompressing: %s", padding, file_name);
@@ -127,18 +154,27 @@ void unRecompressFile(string name) {
 
 	unRecompressDir(temp_dir, false);
 
-	// Compress to 7z
-	prints("%sCompressing: %s", padding, out_file);
-	chdir(temp_dir);
-	compress("*", "../%s".format(out_file), FileType.Zip);
-	chdir("..");
+	final switch (file_type) {
+		case FileType.SevenZip:
+		case FileType.Zip:
+			// Compress to original type
+			prints("%sCompressing: %s", padding, out_file);
+			chdir(temp_dir);
+			compress("*", "../%s".format(out_file), file_type);
+			chdir("..");
+			break;
+		case FileType.Binary:
+			// Rename to original file name
+			rename("%s/%s".format(temp_dir, out_file), out_file);
+			break;
+	}
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
 	}
 
-	// Delete the original 7z file
+	// Delete the original .blah.smol file
 	if (exists(file_name)) {
 		remove(file_name);
 	}
@@ -166,7 +202,7 @@ void recompressDir(string path, bool is_root_dir) {
 			case FileType.SevenZip:
 				break;
 			case FileType.Zip:
-				recompressFile(name);
+				recompressFile(name, file_type);
 				break;
 			case FileType.Binary:
 				if (is_root_dir) {
@@ -176,7 +212,7 @@ void recompressDir(string path, bool is_root_dir) {
 					//prints("!!!!! dir_name: %s", dir_name);
 					//prints("!!!!! file_name: %s", file_name);
 					chdir(dir_name);
-					compress(file_name, "%s.smol".format(file_name), FileType.SevenZip);
+					compress(file_name, "%s%s".format(file_name, fileExtensionForType(FileType.Binary)), FileType.SevenZip);
 					chdir(prev_dir);
 
 					// Delete the original binary file
@@ -200,7 +236,7 @@ void unRecompressDir(string path, bool is_root_dir) {
 
 	foreach (string name; dirEntries(path, SpanMode.depth)) {
 		name = name.replace(`\`, `/`);
-		//prints("%sScanning: %s", padding, name);
+		//prints("%sScanning: %s", padding, name.absolutePath());
 
 		if (isDir(name) || ! name.endsWith(".smol")) continue;
 
