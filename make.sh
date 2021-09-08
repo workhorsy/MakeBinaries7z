@@ -45,11 +45,22 @@ build() {
 example() {
 	set -x
 	dub build --compiler=$DC --build=debug
-	rm -f -rf temp_test_files
-	cp -r templates_backup temp_test_files
-	#cp -r test_data temp_test_files
-	./build/make_binaries_7z.exe --pack temp_test_files
-	./build/make_binaries_7z.exe --unpack temp_test_files
+	rm -f -rf temp
+	cp -r templates temp
+	#cp -r test_data temp
+	./build/make_binaries_7z.exe --pack temp
+	#./build/make_binaries_7z.exe --unpack temp
+	set +x
+}
+
+exampleXXX() {
+	set -x
+	dub build --compiler=$DC --build=debug
+	rm -f -rf temp
+	cp -r templates_backup temp
+	#cp -r test_data temp
+	./build/make_binaries_7z.exe --pack temp
+	#./build/make_binaries_7z.exe --unpack temp
 	set +x
 }
 

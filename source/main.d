@@ -3,18 +3,29 @@
 // Recompresses directories of files to 7z
 // https://github.com/workhorsy/MakeBinaries7z
 
-
-
 import make_binaries_7z;
+import global;
+import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
+import messages;
+import manager;
+import worker;
 
+import std.concurrency : Tid, thisTid;
+import core.thread.osthread : Thread;
+import core.time : dur;
 
 int main(string[] args) {
 	import std.file : exists;
 	import std.getopt : getopt;
-	import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
+
+	setThreadName("main", thisTid());
+	scope (exit) removeThreadName("main");
 
 	// Change the dir to the location of the current exe
 	//chdir(pathDirName(args[0]));
+
+	auto worker = new Worker(thisTid());
+	auto manager = new Manager(thisTid());
 
 	// Get the options
 	string pack_path = null;
@@ -62,7 +73,7 @@ int main(string[] args) {
 			return 1;
 		}
 	}
-
+/*
 	// Pack or unpack the dir
 	if (pack_path) {
 		//prints("!!! pack_path: %s", pack_path);
@@ -74,6 +85,20 @@ int main(string[] args) {
 		prints_error(`Error: unpack or pack path required`);
 		return 1;
 	}
+*/
 
+	// Wait a few seconds
+	Thread.sleep(dur!("seconds")(3));
+	//prints("??? _tid_names: %s", _tid_names);
+
+	// Stop all the threads
+	foreach (string name, Tid value ; _tid_names.dup()) {
+		auto message = MessageStop(name);
+		sendThreadMessageUnconfirmed(message.to_tid, message);
+	}
+//	sendThreadMessageUnconfirmed("worker", MessageStop());
+//	sendThreadMessageUnconfirmed("manager", MessageStop());
+
+	Thread.sleep(dur!("seconds")(3));
 	return 0;
 }

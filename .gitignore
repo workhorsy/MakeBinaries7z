@@ -28,3 +28,4 @@ build/
 templates/
 templates_backup/
 temp_test_files/
+temp/
