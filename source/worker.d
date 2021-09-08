@@ -37,6 +37,10 @@ void onWorkerStart(Tid parent_tid) {
 			Thread.sleep(dur!("msecs")(1000));
 
 			receiveTimeout(0.msecs, &onWorkerMessage);
+
+			// FIXME: Get pids to monitor here
+			ulong memory = getProcessMemoryUsage(172);
+			prints("!!! memory; %s", memory);
 		}
 	} catch (Throwable err) {
 		prints_error("(worker) thread threw: %s", err);
@@ -61,4 +65,32 @@ void onWorkerMessage(Variant data) {
 		default:
 			prints_error("!!!! (worker) Unexpected message: %s", jsoned.jsonToString());
 	}
+}
+
+ulong getProcessMemoryUsage(int pid) {
+	import std.process : executeShell;
+	import std.string : format, split, strip;
+	import std.array : replace;
+	import std.conv : to;
+
+	string command = `tasklist /fi "PID eq %s" /fo list`.format(pid);
+	//prints("Running command: %s", command);
+	auto exe = executeShell(command);
+	if (exe.status != 0) {
+		prints_error("%s", exe.output);
+	}
+	assert(exe.status == 0);
+
+	string raw_size = exe.output.split(`Mem Usage:`)[1].strip().replace(",", "");
+	//prints("!!! raw_size: %s", raw_size);
+	ulong a = raw_size.before(" ").to!ulong;
+	string b = raw_size.after(" ");
+	ulong size;
+	final switch (b) {
+		case "K":
+			size = a * 1024;
+			break;
+	}
+
+	return size;
 }
