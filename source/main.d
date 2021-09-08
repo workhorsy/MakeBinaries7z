@@ -9,10 +9,13 @@ import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
 import messages;
 import manager;
 import worker;
+import dispatch;
 
 import std.concurrency : Tid, thisTid;
 import core.thread.osthread : Thread;
 import core.time : dur;
+
+Dispatch _dispatch;
 
 int main(string[] args) {
 	import std.file : exists;
@@ -24,6 +27,7 @@ int main(string[] args) {
 	// Change the dir to the location of the current exe
 	//chdir(pathDirName(args[0]));
 
+	_dispatch = new Dispatch("main");
 	auto worker = new Worker();
 	auto manager = new Manager();
 
@@ -73,32 +77,25 @@ int main(string[] args) {
 			return 1;
 		}
 	}
-/*
-	// Pack or unpack the dir
-	if (pack_path) {
-		//prints("!!! pack_path: %s", pack_path);
-		recompressDir(pack_path, true);
-	} else if (unpack_path) {
-		//prints("!!! unpack_path: %s", unpack_path);
-		unRecompressDir(unpack_path, true);
-	} else {
+
+	if (! pack_path && ! unpack_path) {
 		prints_error(`Error: unpack or pack path required`);
 		return 1;
 	}
-*/
 
-	// Wait a few seconds
+	// FIXME: Wait for workers to start
 	Thread.sleep(dur!("seconds")(3));
-	//prints("??? _tid_names: %s", _tid_names);
 
-	// Stop all the threads
-	foreach (string name, Tid value ; _tid_names.dup()) {
-		auto message = MessageStop(name);
-		sendThreadMessageUnconfirmed(message.to_tid, message);
+	if (pack_path) {
+		auto b = _dispatch.packPath(pack_path);
+		_dispatch.await(b);
+	} else if (unpack_path) {
+		auto b = _dispatch.unpackPath(unpack_path);
+		_dispatch.await(b);
 	}
-//	sendThreadMessageUnconfirmed("worker", MessageStop());
-//	sendThreadMessageUnconfirmed("manager", MessageStop());
 
-	Thread.sleep(dur!("seconds")(3));
-	return 0;
+	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	sendThreadMessageUnconfirmed("worker", MessageStop());
+	sendThreadMessageUnconfirmed("manager", MessageStop());
+	return manager._retval;
 }

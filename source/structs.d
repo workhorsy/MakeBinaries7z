@@ -31,7 +31,7 @@ JSONObject structToJson(T)(T thing) {
 			json_value.type = JSONType.Boolean;
 			json_value.asBoolean = value;
 		} else {
-			assert(0, "Unexpected JSON member type");
+			static assert(0, `Unexpected JSON member type`);
 		}
 		jsoned[member] = json_value;
 	}

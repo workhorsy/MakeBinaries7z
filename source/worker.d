@@ -6,23 +6,21 @@
 import global;
 import helpers;
 import messages;
-import encode;
 import json;
 import structs;
 
-import std.concurrency : Tid, thisTid, spawn, receive, receiveTimeout;
 import core.thread.osthread : Thread;
 import core.time : dur;
-import std.variant : Variant;
-import core.thread : msecs;
-import dlib.serialization.json : JSONObject, JSONValue, JSONType;
+import dlib.serialization.json : JSONObject;
 
 
 class Worker : IWorker {
 	bool _is_running = false;
+	int[] _pids;
 
 	this() {
 		onMessages("worker", 0, this);
+		_is_running = true;
 	}
 
 	bool onMessage(string message_type, JSONObject jsoned) {
@@ -31,6 +29,10 @@ class Worker : IWorker {
 				auto message = jsoned.jsonToStruct!MessageStop();
 				_is_running = false;
 				return _is_running;
+			case "MessageMonitorMemoryUsage":
+				auto message = jsoned.jsonToStruct!MessageMonitorMemoryUsage();
+				_pids ~= message.pid;
+				break;
 			default:
 				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
 		}
@@ -39,18 +41,31 @@ class Worker : IWorker {
 	}
 
 	void onAfterMessage() {
+		import std.algorithm : remove;
+
 		Thread.sleep(dur!("msecs")(1000));
-		// FIXME: Get pids to monitor here
-		ulong memory = getProcessMemoryUsage(172);
-		prints("!!! memory; %s", memory);
+		long total = 0;
+
+		for (int i=0; i<_pids.length; i++) {
+			long memory = getProcessMemoryUsage(_pids[i]);
+			if (memory > 0) {
+				total += memory;
+			}
+			if (memory == -1) {
+				_pids = _pids.remove(i);
+				i--;
+			}
+		}
+		prints("!!! total memory: %s", total);
 	}
 }
 
-ulong getProcessMemoryUsage(int pid) {
+long getProcessMemoryUsage(int pid) {
 	import std.process : executeShell;
 	import std.string : format, split, strip;
 	import std.array : replace;
 	import std.conv : to;
+	import std.algorithm : canFind;
 
 	string command = `tasklist /fi "PID eq %s" /fo list`.format(pid);
 	//prints("Running command: %s", command);
@@ -60,11 +75,20 @@ ulong getProcessMemoryUsage(int pid) {
 	}
 	assert(exe.status == 0);
 
+	if (exe.output.strip() == "INFO: No tasks are running which match the specified criteria.") {
+		return -1;
+	}
+
+	//prints("??? exe.output: %s", exe.output.strip());
+	if (! exe.output.canFind("7z.exe")) {
+		return -1;
+	}
+
 	string raw_size = exe.output.split(`Mem Usage:`)[1].strip().replace(",", "");
 	//prints("!!! raw_size: %s", raw_size);
-	ulong a = raw_size.before(" ").to!ulong;
+	long a = raw_size.before(" ").to!long;
 	string b = raw_size.after(" ");
-	ulong size;
+	long size;
 	final switch (b) {
 		case "K":
 			size = a * 1024;

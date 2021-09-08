@@ -17,6 +17,36 @@ import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 
 struct MessageStop {
 	string to_tid;
+	size_t from_fid;
+	string from_tid;
+}
+
+struct MessagePack {
+	string to_tid;
+	string path;
+	size_t from_fid;
+	string from_tid;
+}
+
+struct MessageUnpack {
+	string to_tid;
+	string path;
+	size_t from_fid;
+	string from_tid;
+}
+
+struct MessageTaskDone {
+	string to_tid;
+	string receipt;
+	size_t from_fid;
+	string from_tid;
+}
+
+struct MessageMonitorMemoryUsage {
+	string to_tid;
+	string exe_name;
+	int pid;
+	size_t from_fid;
 	string from_tid;
 }
 
@@ -45,6 +75,7 @@ Tid getThreadTid(string name) {
 }
 
 size_t sendThreadMessage(MessageType)(string from_thread_name, string to_thread_name, MessageType message) {
+	import std.concurrency : receive, send, thisTid, Tid;
 	import core.atomic : atomicOp;
 	import std.string : format;
 
@@ -78,7 +109,7 @@ void sendThreadMessageUnconfirmed(MessageType)(string to_thread_name, MessageTyp
 	try {
 		send(getThreadTid(to_thread_name), b64ed);
 	} catch (Throwable err) {
-		prints_error("Failed to send message %s", err);
+		prints_error("Failed to send message to %s, %s", to_thread_name, err);
 	}
 }
 
@@ -143,3 +174,7 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 		}
 	}, name, receive_ms, cast(size_t) (cast(void*) worker));
 }
+
+private:
+
+shared size_t _next_fiber_id;

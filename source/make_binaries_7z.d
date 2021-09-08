@@ -93,6 +93,11 @@ void recompressFile(string name, FileType file_type) {
 	compress("*", "../%s".format(out_file), FileType.SevenZip);
 	chdir("..");
 
+	// FIXME: This needs to wait for the files to be unlocked?
+	import core.thread.osthread : Thread;
+	import core.time : dur;
+	Thread.sleep(dur!("seconds")(3));
+
 	// Delete the temp directory
 	if (exists(temp_dir)) {
 		rmdirRecurse(temp_dir);
@@ -254,7 +259,7 @@ void unRecompressDir(string path, bool is_root_dir) {
 }
 
 void compress(string in_name, string out_name, FileType file_type) {
-	import std.process : execute;
+	import std.process : pipeProcess, wait, Redirect;
 	import std.string : format;
 	import std.file : isDir;
 	import std.array : join;
@@ -275,23 +280,55 @@ void compress(string in_name, string out_name, FileType file_type) {
 	//prints("%sCompressing: %s", padding, out_name);
 	string[] command = ["7z", compression_type, compression_level, compression_multi_thread, "a", out_name, in_name];
 	//prints("Running command: %s", command.join(" "));
-	auto exe = execute(command);
-	if (exe.status != 0) {
-		prints_error("%s", exe.output);
+	auto pipes = pipeProcess(command, Redirect.all);
+	//prints("!!!! pid: %s", pipes.pid.processID);
+
+	// FIXME: Use dispatch instead of this
+	import messages;
+	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
+	sendThreadMessageUnconfirmed(message.to_tid, message);
+
+	// Store lines of output.
+	string[] output;
+	foreach (line; pipes.stdout.byLine) output ~= line.idup;
+
+	// Store lines of errors.
+	string[] errors;
+	foreach (line; pipes.stderr.byLine) errors ~= line.idup;
+
+	int status = wait(pipes.pid);
+	if (status != 0) {
+		prints_error("%s", errors);
 	}
-	assert(exe.status == 0);
+	assert(status == 0);
 }
 
 void uncompress(string in_name, string out_name) {
-	import std.process : execute;
+	import std.process : pipeProcess, wait, Redirect;
 	import std.string : format;
 	import std.array : join;
 
 	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
 	//prints("Running command: %s", command.join(" "));
-	auto exe = execute(command);
-	if (exe.status != 0) {
-		prints_error("%s", exe.output);
+	auto pipes = pipeProcess(command, Redirect.all);
+	//prints("!!!! pid: %s", pipes.pid.processID);
+
+	// FIXME: Use dispatch instead of this
+	import messages;
+	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
+	sendThreadMessageUnconfirmed(message.to_tid, message);
+
+	// Store lines of output.
+	string[] output;
+	foreach (line; pipes.stdout.byLine) output ~= line.idup;
+
+	// Store lines of errors.
+	string[] errors;
+	foreach (line; pipes.stderr.byLine) errors ~= line.idup;
+
+	int status = wait(pipes.pid);
+	if (status != 0) {
+		prints_error("%s", errors);
 	}
-	assert(exe.status == 0);
+	assert(status == 0);
 }

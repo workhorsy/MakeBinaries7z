@@ -8,19 +8,22 @@ import helpers;
 import messages;
 import json;
 import structs;
+import dispatch;
+import make_binaries_7z;
 
-import std.concurrency : Tid, thisTid, spawn, receive;
 import core.thread.osthread : Thread;
-import core.time : dur;
-import std.variant : Variant;
-import dlib.serialization.json : JSONObject, JSONValue, JSONType;
+import dlib.serialization.json : JSONObject;
 
 
 class Manager : IWorker {
 	bool _is_running = false;
+	int _retval = 0;
+	Dispatch _dispatch;
 
 	this() {
+		_dispatch = new Dispatch("manager");
 		onMessages("manager", ulong.max, this);
+		_is_running = true;
 	}
 
 	bool onMessage(string message_type, JSONObject jsoned) {
@@ -28,12 +31,24 @@ class Manager : IWorker {
 			case "MessageStop":
 				auto message = jsoned.jsonToStruct!MessageStop();
 				_is_running = false;
-				return _is_running;
+				break;
+			case "MessagePack":
+				auto message = jsoned.jsonToStruct!MessagePack();
+				//prints("!!! pack_path: %s", pack_path);
+				recompressDir(message.path, true);
+				_dispatch.taskDone(message.from_fid, message.from_tid, "packPath");
+				break;
+			case "MessageUnpack":
+				auto message = jsoned.jsonToStruct!MessageUnpack();
+				//prints("!!! unpack_path: %s", unpack_path);
+				unRecompressDir(message.path, true);
+				_dispatch.taskDone(message.from_fid, message.from_tid, "unpackPath");
+				break;
 			default:
 				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
 		}
 
-		return true;
+		return _is_running;
 	}
 
 	void onAfterMessage() {
