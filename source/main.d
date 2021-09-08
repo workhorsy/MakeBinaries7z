@@ -24,8 +24,8 @@ int main(string[] args) {
 	// Change the dir to the location of the current exe
 	//chdir(pathDirName(args[0]));
 
-	auto worker = new Worker(thisTid());
-	auto manager = new Manager(thisTid());
+	auto worker = new Worker();
+	auto manager = new Manager();
 
 	// Get the options
 	string pack_path = null;

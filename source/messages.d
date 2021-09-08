@@ -10,8 +10,9 @@ import encode;
 import structs;
 import json;
 
-import std.concurrency : Tid, thisTid, spawn, receive;
+import std.concurrency : Tid, thisTid, spawn, receive, receiveTimeout;
 import std.variant : Variant;
+import core.thread : msecs;
 import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 
 struct MessageStop {
@@ -93,4 +94,54 @@ JSONObject getThreadMessage(Variant data, ref string message_type) {
 		message_type = jsoned["type"].asString;
 	}
 	return jsoned;
+}
+
+void onMessages(string name, ulong receive_ms, void* data,
+	bool function(void* d, string message_type, JSONObject jsoned) cb,
+	void function() after_message_cb = null) {
+
+	spawn(function(string _name, ulong _receive_ms, size_t _data,
+		bool function(void* d, string message_type, JSONObject jsoned) _cb,
+		void function() _after_message_cb = null) {
+
+		prints("!!!!!!!!!!!!!!!! %s started ...............", _name);
+
+		try {
+			setThreadName(_name, thisTid());
+			scope (exit) removeThreadName(_name);
+
+			bool is_running = true;
+			while (is_running) {
+				//Thread.sleep(dur!("msecs")(1000));
+
+				if (_receive_ms == ulong.max) {
+					receive((Variant data) {
+						string message_type;
+						JSONObject jsoned = getThreadMessage(data, message_type);
+						if (jsoned is null) return;
+						scope (exit) if (jsoned) Delete(jsoned);
+
+						//prints("!!!!!!!! manager got message %s", message_type);
+						is_running = _cb(cast(void*) _data, message_type, jsoned);
+					});
+				} else {
+					receiveTimeout(_receive_ms.msecs, (Variant data) {
+						string message_type;
+						JSONObject jsoned = getThreadMessage(data, message_type);
+						if (jsoned is null) return;
+						scope (exit) if (jsoned) Delete(jsoned);
+
+						//prints("!!!!!!!! manager got message %s", message_type);
+						is_running = _cb(cast(void*) _data, message_type, jsoned);
+					});
+
+					if (_after_message_cb) {
+						_after_message_cb();
+					}
+				}
+			}
+		} catch (Throwable err) {
+			prints_error("(%s) thread threw: %s", _name, err);
+		}
+	}, name, receive_ms, cast(size_t) data, cb, after_message_cb);
 }

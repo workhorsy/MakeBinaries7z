@@ -20,50 +20,27 @@ import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 bool is_running = false;
 
 class Worker {
-	this(Tid parent_tid) {
-		spawn(&onWorkerStart, parent_tid);
-	}
-}
+	bool _is_running = false;
 
-void onWorkerStart(Tid parent_tid) {
-	prints("!!!!!!!!!!!!!!!! worker started ...............");
+	this() {
+		onMessages("worker", 0, cast(void*) this, function(void* data, string message_type, JSONObject jsoned) {
+			Worker self = cast(Worker) data;
+			switch (message_type) {
+				case "MessageStop":
+					auto message = jsoned.jsonToStruct!MessageStop();
+					self._is_running = false;
+					return self._is_running;
+				default:
+					prints_error("!!!! (worker) Unexpected message: %s", jsoned.jsonToString());
+			}
 
-	try {
-		setThreadName("worker", thisTid());
-		scope (exit) removeThreadName("worker");
-
-		is_running = true;
-		while (is_running) {
+			return true;
+		}, function() {
 			Thread.sleep(dur!("msecs")(1000));
-
-			receiveTimeout(0.msecs, &onWorkerMessage);
-
 			// FIXME: Get pids to monitor here
 			ulong memory = getProcessMemoryUsage(172);
 			prints("!!! memory; %s", memory);
-		}
-	} catch (Throwable err) {
-		prints_error("(worker) thread threw: %s", err);
-	}
-
-	// Have the main loop exit if this ends for any reason
-	g_is_running = false;
-}
-
-void onWorkerMessage(Variant data) {
-	string message_type;
-	JSONObject jsoned = getThreadMessage(data, message_type);
-	if (jsoned is null) return;
-	scope (exit) if (jsoned) Delete(jsoned);
-
-	//prints("!!!!!!!! worker got message %s", message_type);
-	switch (message_type) {
-		case "MessageStop":
-			auto message = jsoned.jsonToStruct!MessageStop();
-			is_running = false;
-			break;
-		default:
-			prints_error("!!!! (worker) Unexpected message: %s", jsoned.jsonToString());
+		});
 	}
 }
 
