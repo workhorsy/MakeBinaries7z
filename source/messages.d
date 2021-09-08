@@ -96,14 +96,13 @@ JSONObject getThreadMessage(Variant data, ref string message_type) {
 	return jsoned;
 }
 
-void onMessages(string name, ulong receive_ms, void* data,
-	bool function(void* d, string message_type, JSONObject jsoned) cb,
-	void function() after_message_cb = null) {
+interface IWorker {
+	bool onMessage(string message_type, JSONObject jsoned);
+	void onAfterMessage();
+}
 
-	spawn(function(string _name, ulong _receive_ms, size_t _data,
-		bool function(void* d, string message_type, JSONObject jsoned) _cb,
-		void function() _after_message_cb = null) {
-
+void onMessages(string name, ulong receive_ms, IWorker worker) {
+	spawn(function(string _name, ulong _receive_ms, size_t _ptr) {
 		prints("!!!!!!!!!!!!!!!! %s started ...............", _name);
 
 		try {
@@ -112,36 +111,35 @@ void onMessages(string name, ulong receive_ms, void* data,
 
 			bool is_running = true;
 			while (is_running) {
-				//Thread.sleep(dur!("msecs")(1000));
 
+				// Get the actual worker from the pointer
+				void* ptr = cast(void*) _ptr;
+				IWorker worker = cast(IWorker) ptr;
+
+				// Get a cb to run the onMessage
+				auto cb = delegate(Variant data) {
+					string message_type;
+					JSONObject jsoned = getThreadMessage(data, message_type);
+					if (jsoned is null) return;
+					scope (exit) if (jsoned) Delete(jsoned);
+
+					//prints("!!!!!!!! got message %s", message_type);
+					is_running = worker.onMessage(message_type, jsoned);
+				};
+
+				// If ms is max, then block forever waiting for messages
 				if (_receive_ms == ulong.max) {
-					receive((Variant data) {
-						string message_type;
-						JSONObject jsoned = getThreadMessage(data, message_type);
-						if (jsoned is null) return;
-						scope (exit) if (jsoned) Delete(jsoned);
-
-						//prints("!!!!!!!! manager got message %s", message_type);
-						is_running = _cb(cast(void*) _data, message_type, jsoned);
-					});
+					receive(cb);
+				// Otherwise only block for the ms
 				} else {
-					receiveTimeout(_receive_ms.msecs, (Variant data) {
-						string message_type;
-						JSONObject jsoned = getThreadMessage(data, message_type);
-						if (jsoned is null) return;
-						scope (exit) if (jsoned) Delete(jsoned);
-
-						//prints("!!!!!!!! manager got message %s", message_type);
-						is_running = _cb(cast(void*) _data, message_type, jsoned);
-					});
-
-					if (_after_message_cb) {
-						_after_message_cb();
-					}
+					receiveTimeout(_receive_ms.msecs, cb);
 				}
+
+				// Run the after message cb
+				worker.onAfterMessage();
 			}
 		} catch (Throwable err) {
 			prints_error("(%s) thread threw: %s", _name, err);
 		}
-	}, name, receive_ms, cast(size_t) data, cb, after_message_cb);
+	}, name, receive_ms, cast(size_t) (cast(void*) worker));
 }

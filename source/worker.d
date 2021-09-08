@@ -17,30 +17,32 @@ import std.variant : Variant;
 import core.thread : msecs;
 import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 
-bool is_running = false;
 
-class Worker {
+class Worker : IWorker {
 	bool _is_running = false;
 
 	this() {
-		onMessages("worker", 0, cast(void*) this, function(void* data, string message_type, JSONObject jsoned) {
-			Worker self = cast(Worker) data;
-			switch (message_type) {
-				case "MessageStop":
-					auto message = jsoned.jsonToStruct!MessageStop();
-					self._is_running = false;
-					return self._is_running;
-				default:
-					prints_error("!!!! (worker) Unexpected message: %s", jsoned.jsonToString());
-			}
+		onMessages("worker", 0, this);
+	}
 
-			return true;
-		}, function() {
-			Thread.sleep(dur!("msecs")(1000));
-			// FIXME: Get pids to monitor here
-			ulong memory = getProcessMemoryUsage(172);
-			prints("!!! memory; %s", memory);
-		});
+	bool onMessage(string message_type, JSONObject jsoned) {
+		switch (message_type) {
+			case "MessageStop":
+				auto message = jsoned.jsonToStruct!MessageStop();
+				_is_running = false;
+				return _is_running;
+			default:
+				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
+		}
+
+		return true;
+	}
+
+	void onAfterMessage() {
+		Thread.sleep(dur!("msecs")(1000));
+		// FIXME: Get pids to monitor here
+		ulong memory = getProcessMemoryUsage(172);
+		prints("!!! memory; %s", memory);
 	}
 }
 

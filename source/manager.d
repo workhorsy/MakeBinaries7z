@@ -16,22 +16,27 @@ import std.variant : Variant;
 import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 
 
-class Manager {
+class Manager : IWorker {
 	bool _is_running = false;
 
 	this() {
-		onMessages("manager", ulong.max, cast(void*) this, function(void* data, string message_type, JSONObject jsoned) {
-			Manager self = cast(Manager) data;
-			switch (message_type) {
-				case "MessageStop":
-					auto message = jsoned.jsonToStruct!MessageStop();
-					self._is_running = false;
-					return self._is_running;
-				default:
-					prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
-			}
+		onMessages("manager", ulong.max, this);
+	}
 
-			return true;
-		});
+	bool onMessage(string message_type, JSONObject jsoned) {
+		switch (message_type) {
+			case "MessageStop":
+				auto message = jsoned.jsonToStruct!MessageStop();
+				_is_running = false;
+				return _is_running;
+			default:
+				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
+		}
+
+		return true;
+	}
+
+	void onAfterMessage() {
+
 	}
 }
