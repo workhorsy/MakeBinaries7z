@@ -262,7 +262,8 @@ void compress(string in_name, string out_name, FileType file_type) {
 	import std.process : pipeProcess, wait, Redirect;
 	import std.string : format;
 	import std.file : isDir;
-	import std.array : join;
+	import std.array : join, array;
+	import std.algorithm : map;
 
 	string compression_type;
 	final switch (file_type) {
@@ -288,15 +289,11 @@ void compress(string in_name, string out_name, FileType file_type) {
 	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
 	sendThreadMessageUnconfirmed(message.to_tid, message);
 
-	// Store lines of output.
-	string[] output;
-	foreach (line; pipes.stdout.byLine) output ~= line.idup;
-
-	// Store lines of errors.
-	string[] errors;
-	foreach (line; pipes.stderr.byLine) errors ~= line.idup;
-
+	// Get output
 	int status = wait(pipes.pid);
+	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();
+	string[] errors = pipes.stderr.byLine.map!(l => l.idup).array();
+
 	if (status != 0) {
 		prints_error("%s", errors);
 	}
@@ -306,7 +303,8 @@ void compress(string in_name, string out_name, FileType file_type) {
 void uncompress(string in_name, string out_name) {
 	import std.process : pipeProcess, wait, Redirect;
 	import std.string : format;
-	import std.array : join;
+	import std.array : join, array;
+	import std.algorithm : map;
 
 	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
 	//prints("Running command: %s", command.join(" "));
@@ -318,15 +316,11 @@ void uncompress(string in_name, string out_name) {
 	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
 	sendThreadMessageUnconfirmed(message.to_tid, message);
 
-	// Store lines of output.
-	string[] output;
-	foreach (line; pipes.stdout.byLine) output ~= line.idup;
-
-	// Store lines of errors.
-	string[] errors;
-	foreach (line; pipes.stderr.byLine) errors ~= line.idup;
-
+	// Get output
 	int status = wait(pipes.pid);
+	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();
+	string[] errors = pipes.stderr.byLine.map!(l => l.idup).array();
+
 	if (status != 0) {
 		prints_error("%s", errors);
 	}
