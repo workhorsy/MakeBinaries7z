@@ -44,8 +44,8 @@ example() {
 	set -x
 	dub build --compiler=$DC --build=debug
 	rm -f -rf temp
-	#cp -r templates temp
-	cp -r test_data temp
+	cp -r templates temp
+	#cp -r test_data temp
 	./build/smol --pack temp
 	./build/smol --unpack temp
 	set +x
