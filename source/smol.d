@@ -7,25 +7,11 @@
 module smol;
 
 import helpers;
+import file_type;
+import compressor;
 
 int g_scope_depth = 0;
-string compression_level = "-mx9";
-string compression_multi_thread = "-mmt=on";
 
-version (linux) {
-	immutable string Exe7Zip = "7z";
-	immutable string ExeUnrar = "unrar";
-} else version (Windows) {
-	immutable string Exe7Zip = "7z.exe";
-	immutable string ExeUnrar = "unrar.exe";
-}
-
-
-enum FileType {
-	Zip,
-	SevenZip,
-	Binary,
-}
 
 string fileExtensionForType(FileType file_type) {
 	final switch (file_type) {
@@ -35,24 +21,6 @@ string fileExtensionForType(FileType file_type) {
 			return ".zip.smol";
 		case FileType.Binary:
 			return ".bin.smol";
-	}
-}
-
-FileType getFileType(string name) {
-	import std.stdio : File;
-
-	// Read first 10 bytes of file
-	auto f = File(name, "r");
-	char[10] header = 0;
-	f.rawRead(header);
-
-	// Return file type based on magic numbers
-	if (header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04]) {
-		return FileType.Zip;
-	} else if (header[0 .. 6] == [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]) {
-		return FileType.SevenZip;
-	} else {
-		return FileType.Binary;
 	}
 }
 
@@ -263,73 +231,4 @@ void unRecompressDir(string path, bool is_root_dir) {
 				break;
 		}
 	}
-}
-
-void compress(string in_name, string out_name, FileType file_type) {
-	import std.process : pipeProcess, wait, Redirect;
-	import std.string : format;
-	import std.file : isDir;
-	import std.array : join, array;
-	import std.algorithm : map;
-
-	string compression_type;
-	final switch (file_type) {
-		case FileType.Zip:
-			compression_type = "-tZip";
-			break;
-		case FileType.SevenZip:
-			compression_type = "-t7z";
-			break;
-		case FileType.Binary:
-			compression_type = "";
-			break;
-	}
-
-	//prints("%sCompressing: %s", padding, out_name);
-	string[] command = ["7z", compression_type, compression_level, compression_multi_thread, "a", out_name, in_name];
-	//prints("Running command: %s", command.join(" "));
-	auto pipes = pipeProcess(command, Redirect.all);
-	//prints("!!!! pid: %s", pipes.pid.processID);
-
-	// FIXME: Use dispatch instead of this
-	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
-	sendThreadMessageUnconfirmed(message.to_tid, message);
-
-	// Get output
-	int status = wait(pipes.pid);
-	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();
-	string[] errors = pipes.stderr.byLine.map!(l => l.idup).array();
-
-	if (status != 0) {
-		prints_error("%s", errors);
-	}
-	assert(status == 0);
-}
-
-void uncompress(string in_name, string out_name) {
-	import std.process : pipeProcess, wait, Redirect;
-	import std.string : format;
-	import std.array : join, array;
-	import std.algorithm : map;
-
-	string[] command = ["7z", "x", in_name, "-o%s".format(out_name)];
-	//prints("Running command: %s", command.join(" "));
-	auto pipes = pipeProcess(command, Redirect.all);
-	//prints("!!!! pid: %s", pipes.pid.processID);
-
-	// FIXME: Use dispatch instead of this
-	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
-	sendThreadMessageUnconfirmed(message.to_tid, message);
-
-	// Get output
-	int status = wait(pipes.pid);
-	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();
-	string[] errors = pipes.stderr.byLine.map!(l => l.idup).array();
-
-	if (status != 0) {
-		prints_error("%s", errors);
-	}
-	assert(status == 0);
 }
