@@ -44,6 +44,7 @@ class Worker : IWorker {
 		import std.algorithm : remove;
 
 		Thread.sleep(dur!("msecs")(1000));
+/*
 		long total = 0;
 
 		for (int i=0; i<_pids.length; i++) {
@@ -57,6 +58,7 @@ class Worker : IWorker {
 			}
 		}
 		prints("!!! total memory: %s", total);
+*/
 	}
 }
 
