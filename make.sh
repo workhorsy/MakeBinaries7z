@@ -46,10 +46,10 @@ example() {
 	set -x
 	dub build --compiler=$DC --build=debug
 	rm -f -rf temp
-	cp -r templates temp
-	#cp -r test_data temp
-	./build/make_binaries_7z.exe --pack temp
-	#./build/make_binaries_7z.exe --unpack temp
+	#cp -r templates temp
+	cp -r test_data temp
+	./build/make_binaries_7z --pack temp
+	./build/make_binaries_7z --unpack temp
 	set +x
 }
 

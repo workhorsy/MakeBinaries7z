@@ -12,6 +12,13 @@ int g_scope_depth = 0;
 string compression_level = "-mx9";
 string compression_multi_thread = "-mmt=on";
 
+version (linux) {
+	immutable string Exe7Zip = "7z";
+	immutable string ExeUnrar = "unrar";
+} else version (Windows) {
+	immutable string Exe7Zip = "7z.exe";
+	immutable string ExeUnrar = "unrar.exe";
+}
 
 
 enum FileType {
@@ -286,7 +293,7 @@ void compress(string in_name, string out_name, FileType file_type) {
 
 	// FIXME: Use dispatch instead of this
 	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
+	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
 	sendThreadMessageUnconfirmed(message.to_tid, message);
 
 	// Get output
@@ -313,7 +320,7 @@ void uncompress(string in_name, string out_name) {
 
 	// FIXME: Use dispatch instead of this
 	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pipes.pid.processID);
+	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
 	sendThreadMessageUnconfirmed(message.to_tid, message);
 
 	// Get output
