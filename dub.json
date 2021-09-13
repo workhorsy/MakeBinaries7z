@@ -1,10 +1,10 @@
 {
-	"name": "makebinaries7z",
+	"name": "smol",
 	"description": "Recompresses directories of files to 7z",
 	"authors": [
 		"Matthew Brennan Jones <matthew.brennan.jones@gmail.com>"
 	],
-	"homepage": "https://github.com/workhorsy/MakeBinaries7z",
+	"homepage": "https://github.com/workhorsy/smol",
 	"copyright": "Copyright (c) 2021 Matthew Brennan Jones",
 	"license": "BSL-1.0",
 	"targetPath": "build",
