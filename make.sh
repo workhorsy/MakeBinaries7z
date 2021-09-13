@@ -2,18 +2,16 @@
 set -e
 set +x
 
-# Get the D compiler
-if [ "$OSTYPE" == "msys" ] || [ "$OSTYPE" == "win32" ]; then
-	source ~/dlang/ldc-1.25.1/activate
-fi
-DC="dmd"
 
 # Get the OS and file extension
 if [[ "$OSTYPE" == "linux"* ]]; then
 	OS="linux"
+	DC="dmd"
 	EXE=""
 elif [ "$OSTYPE" == "msys" ] || [ "$OSTYPE" == "win32" ]; then
 	OS="windows"
+	source ~/dlang/ldc-1.26.0/activate
+	DC="ldc2"
 	EXE=".exe"
 else
 	echo "Unknown OS: $OSTYPE"
