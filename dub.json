@@ -13,7 +13,7 @@
 		{
 			"name": "default",
 			"targetType": "executable",
-			"targetName": "make_binaries_7z",
+			"targetName": "smol",
 			"importPaths": ["source/"],
 			"mainSourceFile": "source/main.d",
 			"dependencies": {
@@ -24,7 +24,7 @@
 		{
 			"name": "unittest",
 			"targetType": "executable",
-			"targetName": "make_binaries_7z_test",
+			"targetName": "smol_test",
 			"importPaths": ["source/"],
 			"excludedSourceFiles": ["source/main.d"],
 			"mainSourceFile": "test/test.d",

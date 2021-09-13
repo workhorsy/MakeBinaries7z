@@ -8,7 +8,7 @@
 unittest {
 	import BDD;
 	import helpers;
-	import make_binaries_7z;
+	import smol;
 	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, mkdir, getSize;
 
 	describe("make-binaries-7z",

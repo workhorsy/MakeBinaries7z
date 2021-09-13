@@ -4,7 +4,7 @@
 // https://github.com/workhorsy/MakeBinaries7z
 
 
-module make_binaries_7z;
+module smol;
 
 import helpers;
 

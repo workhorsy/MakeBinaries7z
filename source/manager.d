@@ -9,7 +9,7 @@ import messages;
 import json;
 import structs;
 import dispatch;
-import make_binaries_7z;
+import smol;
 
 import core.thread.osthread : Thread;
 import dlib.serialization.json : JSONObject;

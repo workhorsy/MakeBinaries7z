@@ -1,1 +1,1 @@
-# MakeBinaries7z
+# smol

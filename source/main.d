@@ -3,7 +3,7 @@
 // Recompresses directories of files to 7z
 // https://github.com/workhorsy/MakeBinaries7z
 
-import make_binaries_7z;
+import smol;
 import global;
 import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
 import messages;
