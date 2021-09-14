@@ -30,8 +30,28 @@ string getScopePadding() {
 	return "    ".repeat.take(g_scope_depth).array.join("");
 }
 
+string getRandomTempDirectory() {
+	import std.random : MinstdRand0, uniform;
+	import std.range : iota;
+	import std.array : array, join, replace;
+	import std.conv : to;
+	import std.file : tempDir;
+	import std.algorithm : map, filter;
+
+	immutable string data = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	string name = iota(0, 10)
+		.map!(n => uniform(0, data.length, g_rand))
+		.map!(n => data[n].to!string)
+		.array()
+		.join("")
+		.replace(`\`, `/`);
+
+	return buildPath(tempDir(), name) ~ `/`;
+}
+
 void recompressFile(string name, FileType file_type) {
-	import std.file : remove, rmdirRecurse, exists;
+	import std.file : rename, remove, rmdirRecurse, exists, tempDir;
 	import std.string : format;
 
 	g_scope_depth++;
@@ -48,30 +68,28 @@ void recompressFile(string name, FileType file_type) {
 		rmdirRecurse(temp_dir);
 	}
 */
+	string original_dir = getcwd().absolutePath();
 	string full_path = absolutePath(name);
-	string path = pathDirName(full_path);
-	string file_name = pathBaseName(full_path);
-	string temp_dir = "%s.xxx".format(file_name);
-	string out_file = "%s%s".format(file_name, fileExtensionForType(file_type));
-	string prev_dir = getcwd().absolutePath();
+	string path_dir = pathDirName(full_path);
+	string path_base = pathBaseName(full_path);
+	string temp_dir = getRandomTempDirectory();//"%s.xxx".format(path_base);
+	prints("!!!!!! temp_dir: %s", temp_dir);
+	string out_file = "%s%s".format(path_base, fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, file_name);
-	chdir(path);
-	uncompress(file_name, temp_dir);
+	prints("%sUncompressing: %s", padding, path_base);
+	chdir(path_dir);
+	uncompress(path_base, temp_dir);
 
 	recompressDir(temp_dir, false);
 
 	// Compress to 7z
 	prints("%sCompressing: %s", padding, out_file);
 	chdir(temp_dir);
-	compress("*", "../%s".format(out_file), FileType.SevenZip);
-	chdir("..");
+	compress("*", out_file, FileType.SevenZip);
 
-	// FIXME: This needs to wait for the files to be unlocked?
-	import core.thread.osthread : Thread;
-	import core.time : dur;
-	Thread.sleep(dur!("seconds")(3));
+	rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+	chdir(original_dir);
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
@@ -79,18 +97,16 @@ void recompressFile(string name, FileType file_type) {
 	}
 
 	// Delete the original zip file
-	if (exists(file_name)) {
-		remove(file_name);
+	if (exists(full_path)) {
+		remove(full_path);
 	}
-
-	chdir(prev_dir);
 }
 
 void unRecompressFile(string name) {
 	import std.file : remove, rmdirRecurse, exists;
 	import std.string : format, stripRight, endsWith;
 	import std.traits : EnumMembers;
-	import std.file : rename;
+	import std.file : rename, tempDir;
 
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
@@ -106,31 +122,37 @@ void unRecompressFile(string name) {
 		rmdirRecurse(temp_dir);
 	}
 */
-	string prev_dir = getcwd().absolutePath();
+	string original_dir = getcwd().absolutePath();
 	string full_path = absolutePath(name);
-	string path = pathDirName(full_path);
-	string file_name = pathBaseName(full_path);
-	string temp_dir = "%s.xxx".format(file_name);
+	string path_dir = pathDirName(full_path);
+	string path_base = pathBaseName(full_path);
+	string temp_dir = getRandomTempDirectory();//"%s.xxx".format(path_base);
+	prints("!!!!!! temp_dir: %s", temp_dir);
+	//prints("!!!!!! path_base: %s", path_base);
 
 	// Get the original file name and type based on the .blah.smol
 	string out_file = "";
 	FileType file_type;
 	foreach (n ; EnumMembers!FileType) {
 		string extension = fileExtensionForType(n);
-		if (file_name.endsWith(extension)) {
-			out_file = "%s".format(file_name.stripRight(extension));
+		if (path_base.endsWith(extension)) {
+			prints("!!!!! extension: %s", extension);
+			out_file = path_base[0 .. $ - extension.length];
+			prints("!!!!! out_file: %s", out_file);
 			file_type = n;
 			break;
 		}
 	}
+	prints("!!!!! full_path: %s", full_path);
+	prints("!!!!! out_file: %s", out_file);
 
-//	prints("!!!!! file_name: %s", file_name);
+//	prints("!!!!! path_base: %s", path_base);
 //	prints("!!!!! file_type: %s", fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, file_name);
-	chdir(path);
-	uncompress(file_name, temp_dir);
+	prints("%sUncompressing: %s", padding, path_base);
+	chdir(path_dir);
+	uncompress(path_base, temp_dir);
 
 	unRecompressDir(temp_dir, false);
 
@@ -140,14 +162,19 @@ void unRecompressFile(string name) {
 			// Compress to original type
 			prints("%sCompressing: %s", padding, out_file);
 			chdir(temp_dir);
-			compress("*", "../%s".format(out_file), file_type);
-			chdir("..");
+			compress("*", out_file, file_type);
+
+			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
 		case FileType.Binary:
 			// Rename to original file name
-			rename("%s/%s".format(temp_dir, out_file), out_file);
+			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
 	}
+
+	chdir(original_dir);
 
 	// Delete the temp directory
 	if (exists(temp_dir)) {
@@ -155,11 +182,9 @@ void unRecompressFile(string name) {
 	}
 
 	// Delete the original .blah.smol file
-	if (exists(file_name)) {
-		remove(file_name);
+	if (exists(full_path)) {
+		remove(full_path);
 	}
-
-	chdir(prev_dir);
 }
 
 void recompressDir(string path, bool is_root_dir) {

@@ -5,7 +5,7 @@
 
 import smol;
 import global;
-import helpers : pathDirName, toPosixPath, absolutePath, prints, prints_error;
+import helpers;
 import messages;
 import manager;
 import worker;
@@ -20,6 +20,8 @@ Dispatch _dispatch;
 int main(string[] args) {
 	import std.file : exists;
 	import std.getopt : getopt;
+
+	initRandom();
 
 	setThreadName("main", thisTid());
 	scope (exit) removeThreadName("main");
@@ -86,12 +88,17 @@ int main(string[] args) {
 	// FIXME: Wait for workers to start
 	Thread.sleep(dur!("seconds")(3));
 
+	import chunker;
 	if (pack_path) {
-		auto b = _dispatch.packPath(pack_path);
-		_dispatch.await(b);
+//		auto b = _dispatch.packPath(pack_path);
+//		_dispatch.await(b);
+		recompressDir(pack_path, true);
+		chunkDirFiles(pack_path);
 	} else if (unpack_path) {
-		auto b = _dispatch.unpackPath(unpack_path);
-		_dispatch.await(b);
+//		auto b = _dispatch.unpackPath(unpack_path);
+//		_dispatch.await(b);
+		unChunkDirFiles(unpack_path);
+		unRecompressDir(unpack_path, true);
 	}
 
 	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");

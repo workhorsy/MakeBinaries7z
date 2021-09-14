@@ -6,10 +6,21 @@
 module helpers;
 
 import std.traits : isSomeString;
+import std.random : MinstdRand0;
 
 public import std.file : SpanMode;
 public import std.file : DirIterator;
 
+MinstdRand0 g_rand;
+
+void initRandom() {
+	import core.stdc.time : time;
+
+	g_rand = MinstdRand0(1);
+
+	// Seed random number generator
+	g_rand.seed(cast(uint) time(null));
+}
 
 void prints(string message) {
 	import std.stdio : stdout;

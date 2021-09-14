@@ -15,7 +15,7 @@ FileType getFileType(string name) {
 	import std.stdio : File;
 
 	// Read first 10 bytes of file
-	auto f = File(name, "r");
+	auto f = File(name, "rb");
 	char[10] header = 0;
 	f.rawRead(header);
 
