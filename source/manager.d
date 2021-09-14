@@ -10,6 +10,8 @@ import json;
 import structs;
 import dispatch;
 import chunker;
+import pack;
+import unpack;
 import smol;
 
 import core.thread.osthread : Thread;

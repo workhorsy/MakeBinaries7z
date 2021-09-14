@@ -10,6 +10,8 @@ import messages;
 import manager;
 import worker;
 import dispatch;
+import pack;
+import unpack;
 
 import std.concurrency : Tid, thisTid;
 import core.thread.osthread : Thread;
