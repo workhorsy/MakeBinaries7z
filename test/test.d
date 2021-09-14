@@ -8,6 +8,8 @@
 unittest {
 	import BDD;
 	import helpers;
+	import pack;
+	import unpack;
 	import smol;
 	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, mkdir, getSize;
 
@@ -38,17 +40,16 @@ unittest {
 			}
 		}),
 		it("Should round trip files", delegate() {
-
 			ulong original_size = "test_data/aaa/bbb/ccc.zip".getSize;
 
 			// Recompress the test dir files
 			packDir(".", true);
-			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip.zip.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(false);
 
 			unpackDir(".", true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(true);
-			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(false);
+			"test_data/aaa/bbb/ccc.zip.zip.smol".exists.shouldEqual(false);
 
 			//
 			ulong new_size = "test_data/aaa/bbb/ccc.zip".getSize;
@@ -61,10 +62,10 @@ unittest {
 			// Make sure the files have been recompressed
 			"test_data/aaa".exists.shouldEqual(true);
 			"test_data/aaa/bbb".exists.shouldEqual(true);
-			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(true);
-			"test_data/aaa/bbb/xxx.zip.smol".exists.shouldEqual(true);
-			"test_data/aaa/bbb.txt.smol".exists.shouldEqual(true);
-			"test_data/aaa/bbb.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb/ccc.zip.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb/xxx.zip.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb.txt.bin.smol".exists.shouldEqual(true);
+			"test_data/aaa/bbb.zip.zip.smol".exists.shouldEqual(true);
 		}),
 	);
 }
