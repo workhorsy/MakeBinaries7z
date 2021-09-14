@@ -38,7 +38,7 @@ class Manager : IWorker {
 			case "MessagePack":
 				auto message = jsoned.jsonToStruct!MessagePack();
 				//prints("!!! pack_path: %s", pack_path);
-				recompressDir(message.path, true);
+				packDir(message.path, true);
 				chunkDirFiles(message.path);
 				_dispatch.taskDone(message.from_fid, message.from_tid, "packPath");
 				break;
@@ -46,7 +46,7 @@ class Manager : IWorker {
 				auto message = jsoned.jsonToStruct!MessageUnpack();
 				//prints("!!! unpack_path: %s", unpack_path);
 				unChunkDirFiles(message.path);
-				unRecompressDir(message.path, true);
+				unpackDir(message.path, true);
 				_dispatch.taskDone(message.from_fid, message.from_tid, "unpackPath");
 				break;
 			default:

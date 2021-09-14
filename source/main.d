@@ -94,13 +94,13 @@ int main(string[] args) {
 	if (pack_path) {
 //		auto b = _dispatch.packPath(pack_path);
 //		_dispatch.await(b);
-		recompressDir(pack_path, true);
+		packDir(pack_path, true);
 		chunkDirFiles(pack_path);
 	} else if (unpack_path) {
 //		auto b = _dispatch.unpackPath(unpack_path);
 //		_dispatch.await(b);
 		unChunkDirFiles(unpack_path);
-		unRecompressDir(unpack_path, true);
+		unpackDir(unpack_path, true);
 	}
 
 	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");

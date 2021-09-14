@@ -9,7 +9,7 @@ import file_type;
 import smol;
 import compressor;
 
-void unRecompressFile(string name) {
+void unpackFile(string name) {
 	import std.file : remove, rmdirRecurse, exists;
 	import std.string : format, stripRight, endsWith;
 	import std.traits : EnumMembers;
@@ -61,7 +61,7 @@ void unRecompressFile(string name) {
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 
-	unRecompressDir(temp_dir, false);
+	unpackDir(temp_dir, false);
 
 	final switch (file_type) {
 		case FileType.SevenZip:
@@ -96,7 +96,7 @@ void unRecompressFile(string name) {
 
 
 
-void unRecompressDir(string path, bool is_root_dir) {
+void unpackDir(string path, bool is_root_dir) {
 	import std.array : replace;
 	import std.file : dirEntries, SpanMode, isDir;
 	import std.algorithm.searching : endsWith;
@@ -114,7 +114,7 @@ void unRecompressDir(string path, bool is_root_dir) {
 		auto file_type = getFileType(name);
 		final switch (file_type) {
 			case FileType.SevenZip:
-				unRecompressFile(name);
+				unpackFile(name);
 				break;
 			case FileType.Zip:
 				break;

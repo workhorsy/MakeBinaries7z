@@ -9,7 +9,7 @@ import file_type;
 import smol;
 import compressor;
 
-void recompressFile(string name, FileType file_type) {
+void packFile(string name, FileType file_type) {
 	import std.file : rename, remove, rmdirRecurse, exists, tempDir;
 	import std.string : format;
 
@@ -40,7 +40,7 @@ void recompressFile(string name, FileType file_type) {
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 
-	recompressDir(temp_dir, false);
+	packDir(temp_dir, false);
 
 	// Compress to 7z
 	prints("%sCompressing: %s", padding, out_file);
@@ -61,7 +61,7 @@ void recompressFile(string name, FileType file_type) {
 	}
 }
 
-void recompressDir(string path, bool is_root_dir) {
+void packDir(string path, bool is_root_dir) {
 	import std.array : replace;
 	import std.file : dirEntries, SpanMode, isDir, remove, exists;
 	import std.string : format;
@@ -81,7 +81,7 @@ void recompressDir(string path, bool is_root_dir) {
 			case FileType.SevenZip:
 				break;
 			case FileType.Zip:
-				recompressFile(name, file_type);
+				packFile(name, file_type);
 				break;
 			case FileType.Binary:
 				if (is_root_dir) {

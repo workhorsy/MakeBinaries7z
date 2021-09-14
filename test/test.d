@@ -42,11 +42,11 @@ unittest {
 			ulong original_size = "test_data/aaa/bbb/ccc.zip".getSize;
 
 			// Recompress the test dir files
-			recompressDir(".", true);
+			packDir(".", true);
 			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(false);
 
-			unRecompressDir(".", true);
+			unpackDir(".", true);
 			"test_data/aaa/bbb/ccc.zip".exists.shouldEqual(true);
 			"test_data/aaa/bbb/ccc.zip.smol".exists.shouldEqual(false);
 
@@ -56,7 +56,7 @@ unittest {
 		}),
 		it("Should recompress files", delegate() {
 			// Recompress the test dir files
-			recompressDir(".", true);
+			packDir(".", true);
 
 			// Make sure the files have been recompressed
 			"test_data/aaa".exists.shouldEqual(true);
