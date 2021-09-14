@@ -16,7 +16,3 @@ alias uint8_t   u8;
 alias uint16_t  u16;
 alias uint32_t  u32;
 alias uint64_t  u64;
-
-int _fps = 0;
-shared string g_root_path = null;
-shared bool g_is_running = false;
