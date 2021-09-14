@@ -6,15 +6,12 @@
 import global;
 import helpers;
 import messages;
-import json;
-import structs;
 import dispatch;
 import chunker;
 import pack;
 import unpack;
 
 import core.thread.osthread : Thread;
-import dlib.serialization.json : JSONObject;
 
 
 class Manager : IWorker {
@@ -28,28 +25,28 @@ class Manager : IWorker {
 		_is_running = true;
 	}
 
-	bool onMessage(string message_type, JSONObject jsoned) {
-		switch (message_type) {
+	bool onMessage(MessageHolder message_holder) {
+		switch (message_holder.message_type) {
 			case "MessageStop":
-				auto message = jsoned.jsonToStruct!MessageStop();
+				auto message = message_holder.decodeMessage!MessageStop();
 				_is_running = false;
 				break;
 			case "MessagePack":
-				auto message = jsoned.jsonToStruct!MessagePack();
+				auto message = message_holder.decodeMessage!MessagePack();
 				//prints("!!! pack_path: %s", pack_path);
 				packDir(message.path, true);
 				chunkDirFiles(message.path);
-				_dispatch.taskDone(message.from_fid, message.from_tid, "packPath");
+				_dispatch.taskDone(message_holder.mid, message_holder.from_tid, "packPath");
 				break;
 			case "MessageUnpack":
-				auto message = jsoned.jsonToStruct!MessageUnpack();
+				auto message = message_holder.decodeMessage!MessageUnpack();
 				//prints("!!! unpack_path: %s", unpack_path);
 				unChunkDirFiles(message.path);
 				unpackDir(message.path, true);
-				_dispatch.taskDone(message.from_fid, message.from_tid, "unpackPath");
+				_dispatch.taskDone(message_holder.mid, message_holder.from_tid, "unpackPath");
 				break;
 			default:
-				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
+				prints_error("!!!! (manager) Unexpected message: %s", message_holder);
 		}
 
 		return _is_running;

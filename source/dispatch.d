@@ -3,14 +3,10 @@
 // Recompresses directories of files to 7z
 // https://github.com/workhorsy/smol
 
-import std.stdio : stdout, stderr;
-
 
 import global;
 import helpers;
 import messages;
-import structs;
-import json;
 
 class Dispatch {
 	string _thread_name;
@@ -20,48 +16,45 @@ class Dispatch {
 	}
 
 	size_t packPath(string pack_path) {
-		auto message = MessagePack("manager", pack_path);
-		return sendThreadMessage(_thread_name, message.to_tid, message);
+		auto message = MessagePack(pack_path);
+		return sendThreadMessage(_thread_name, "manager", message);
 	}
 
 	size_t unpackPath(string unpack_path) {
-		auto message = MessageUnpack("manager", unpack_path);
-		return sendThreadMessage(_thread_name, message.to_tid, message);
+		auto message = MessageUnpack(unpack_path);
+		return sendThreadMessage(_thread_name, "manager", message);
 	}
 
 	void monitorMemoryUsage(int pid) {
-		auto message = MessageMonitorMemoryUsage("worker", "7z.exe", pid);
-		sendThreadMessageUnconfirmed(message.to_tid, message);
+		auto message = MessageMonitorMemoryUsage("7z.exe", pid);
+		sendThreadMessageUnconfirmed("worker", message);
 	}
 
-	void taskDone(size_t from_fid, string from_tid, string receipt) {
-		auto message = MessageTaskDone(from_tid, receipt, from_fid, from_tid);
+	void taskDone(size_t mid, string from_tid, string receipt) {
+		auto message = MessageTaskDone(receipt, mid, from_tid, from_tid);
 		sendThreadMessageUnconfirmed(from_tid, message);
 	}
 
-	void await(size_t[] awaiting_fids ...) {
+	void await(size_t[] awaiting_mids ...) {
 		import std.concurrency : receive;
 		import std.variant : Variant;
-		import dlib.serialization.json : JSONObject, JSONValue, JSONType;
 		import std.algorithm : remove;
 		import std.string : format;
 
-		while (awaiting_fids.length > 0) {
+		while (awaiting_mids.length > 0) {
 			receive((Variant data) {
 				//print("<<<<<<<<<< Dispatch.await data %s", data.to!string);
-				string message_type;
-				JSONObject jsoned = getThreadMessage(data, message_type);
-				if (jsoned is null) return;
-				scope (exit) if (jsoned) Delete(jsoned);
+				MessageHolder holder = getThreadMessage(data);
+				if (holder is MessageHolder.init) return;
 
-				switch (message_type) {
+				switch (holder.message_type) {
 					case "MessageTaskDone":
-						auto message = jsoned.jsonToStruct!MessageTaskDone();
-						size_t fid = message.from_fid;
-						awaiting_fids = awaiting_fids.remove!(await_fid => await_fid == fid);
+						auto message = holder.decodeMessage!MessageTaskDone();
+						size_t mid = message.mid;
+						awaiting_mids = awaiting_mids.remove!(await_mid => await_mid == mid);
 						break;
 					default:
-						stderr.writefln("!!!! (Dispatch.await) Unexpected message: %s", jsoned.jsonToString()); stderr.flush();
+						prints_error("!!!! (Dispatch.await) Unexpected message: %s", holder);
 				}
 			});
 		}

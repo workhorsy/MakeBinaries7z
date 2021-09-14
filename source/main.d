@@ -92,15 +92,15 @@ int main(string[] args) {
 
 	import chunker;
 	if (pack_path) {
-//		auto b = _dispatch.packPath(pack_path);
-//		_dispatch.await(b);
-		packDir(pack_path, true);
-		chunkDirFiles(pack_path);
+		auto b = _dispatch.packPath(pack_path);
+		_dispatch.await(b);
+//		packDir(pack_path, true);
+//		chunkDirFiles(pack_path);
 	} else if (unpack_path) {
-//		auto b = _dispatch.unpackPath(unpack_path);
-//		_dispatch.await(b);
-		unChunkDirFiles(unpack_path);
-		unpackDir(unpack_path, true);
+		auto b = _dispatch.unpackPath(unpack_path);
+		_dispatch.await(b);
+//		unChunkDirFiles(unpack_path);
+//		unpackDir(unpack_path, true);
 	}
 
 	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");

@@ -71,12 +71,12 @@ void unpackFile(string name) {
 			compress("*", out_file, file_type);
 
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
-			prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			//prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
 		case FileType.Binary:
 			// Rename to original file name
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
-			prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			//prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
 	}
 

@@ -6,12 +6,9 @@
 import global;
 import helpers;
 import messages;
-import json;
-import structs;
 
 import core.thread.osthread : Thread;
 import core.time : dur;
-import dlib.serialization.json : JSONObject;
 
 
 class Worker : IWorker {
@@ -23,18 +20,18 @@ class Worker : IWorker {
 		_is_running = true;
 	}
 
-	bool onMessage(string message_type, JSONObject jsoned) {
-		switch (message_type) {
+	bool onMessage(MessageHolder message_holder) {
+		switch (message_holder.message_type) {
 			case "MessageStop":
-				auto message = jsoned.jsonToStruct!MessageStop();
+				auto message = message_holder.decodeMessage!MessageStop();
 				_is_running = false;
 				return _is_running;
 			case "MessageMonitorMemoryUsage":
-				auto message = jsoned.jsonToStruct!MessageMonitorMemoryUsage();
+				auto message = message_holder.decodeMessage!MessageMonitorMemoryUsage();
 				_pids ~= message.pid;
 				break;
 			default:
-				prints_error("!!!! (manager) Unexpected message: %s", jsoned.jsonToString());
+				prints_error("!!!! (manager) Unexpected message: %s", message_holder);
 		}
 
 		return true;

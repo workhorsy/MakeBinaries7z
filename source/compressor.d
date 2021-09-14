@@ -50,8 +50,8 @@ void compress(string in_name, string out_name, FileType file_type) {
 
 	// FIXME: Use dispatch instead of this
 	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
-	sendThreadMessageUnconfirmed(message.to_tid, message);
+	auto message = MessageMonitorMemoryUsage(Exe7Zip, pipes.pid.processID);
+	sendThreadMessageUnconfirmed("worker", message);
 
 	// Get output
 	int status = wait(pipes.pid);
@@ -77,8 +77,8 @@ void uncompress(string in_name, string out_name) {
 
 	// FIXME: Use dispatch instead of this
 	import messages;
-	auto message = MessageMonitorMemoryUsage("worker", Exe7Zip, pipes.pid.processID);
-	sendThreadMessageUnconfirmed(message.to_tid, message);
+	auto message = MessageMonitorMemoryUsage(Exe7Zip, pipes.pid.processID);
+	sendThreadMessageUnconfirmed("worker", message);
 
 	// Get output
 	int status = wait(pipes.pid);

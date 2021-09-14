@@ -6,48 +6,46 @@
 
 import global;
 import helpers;
-import encode;
-import structs;
-import json;
 
 import std.concurrency : Tid, thisTid, spawn, receive, receiveTimeout;
 import std.variant : Variant;
 import core.thread : msecs;
-import dlib.serialization.json : JSONObject, JSONValue, JSONType;
+
+struct MessageHolder {
+	string message_type;
+	ubyte[] message;
+	size_t mid;
+	string from_tid;
+	string to_tid;
+
+	T decodeMessage(T)() {
+		import cbor : decodeCborSingle;
+
+		return decodeCborSingle!T(message);
+	}
+}
 
 struct MessageStop {
-	string to_tid;
-	size_t from_fid;
-	string from_tid;
 }
 
 struct MessagePack {
-	string to_tid;
 	string path;
-	size_t from_fid;
-	string from_tid;
 }
 
 struct MessageUnpack {
-	string to_tid;
 	string path;
-	size_t from_fid;
-	string from_tid;
 }
 
 struct MessageTaskDone {
-	string to_tid;
 	string receipt;
-	size_t from_fid;
+	size_t mid;
 	string from_tid;
+	string to_tid;
 }
 
 struct MessageMonitorMemoryUsage {
-	string to_tid;
 	string exe_name;
 	int pid;
-	size_t from_fid;
-	string from_tid;
 }
 
 __gshared Tid[string] _tid_names;
@@ -75,60 +73,126 @@ Tid getThreadTid(string name) {
 }
 
 size_t sendThreadMessage(MessageType)(string from_thread_name, string to_thread_name, MessageType message) {
-	import std.concurrency : receive, send, thisTid, Tid;
+	import std.concurrency : send, Tid;
 	import core.atomic : atomicOp;
 	import std.string : format;
+	import std.array : appender;
+	import std.base64 : Base64;
+	import cbor : encodeCbor;
 
 	Tid target_thread = getThreadTid(to_thread_name);
 	if (target_thread == Tid.init) {
 		throw new Exception(`No thread with name "%s" found`.format(to_thread_name));
 	}
 
-	size_t fid = _next_fiber_id.atomicOp!"+="(1);
-	string tid = from_thread_name;
+	// Convert the message to a blob
+	auto message_buffer = appender!(ubyte[])();
+	encodeCbor(message_buffer, message);
+	ubyte[] message_blob = message_buffer.data;
 
-	JSONObject jsoned = message.structToJson();
-	scope (exit) deleteJson(jsoned);
+	// Get a message holder
+	size_t mid = _next_message_id.atomicOp!"+="(1);
+	string from_tid = from_thread_name;
+	string message_type = MessageType.stringof;
+	auto holder = MessageHolder(message_type, message_blob, mid, from_tid);
 
-	string b64ed = jsoned.encodeMessage(fid, tid);
+	// Convert the holder to a blob
+	auto holder_buffer = appender!(ubyte[])();
+	encodeCbor(holder_buffer, holder);
+	ubyte[] holder_blob = holder_buffer.data;
 
-	send(target_thread, b64ed);
-	return fid;
+	// Base64 the holder blob
+	string b64ed = Base64.encode(holder_blob);
+	string encoded = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
+
+	send(target_thread, encoded);
+	return mid;
 }
 
 void sendThreadMessageUnconfirmed(MessageType)(string to_thread_name, MessageType message) {
-	import std.concurrency : receive, send, thisTid, Tid;
+	import std.concurrency : send, Tid;
+	import core.atomic : atomicOp;
+	import std.string : format;
+	import std.array : appender;
+	import std.base64 : Base64;
+	import cbor : encodeCbor;
 
-	JSONObject jsoned = message.structToJson();
-	scope (exit) deleteJson(jsoned);
+	// Convert the message to a blob
+	auto message_buffer = appender!(ubyte[])();
+	encodeCbor(message_buffer, message);
+	ubyte[] message_blob = message_buffer.data;
 
-	string b64ed = jsoned.encodeMessage();
-	//print("!!!! b64ed: %s", b64ed);
-	//printJSONObject(jsoned);
+	// Get a message holder
+	string message_type = MessageType.stringof;
+	auto holder = MessageHolder(message_type, message_blob);
+
+	// Convert the holder to a blob
+	auto holder_buffer = appender!(ubyte[])();
+	encodeCbor(holder_buffer, holder);
+	ubyte[] holder_blob = holder_buffer.data;
+
+	// Base64 the holder blob
+	string b64ed = Base64.encode(holder_blob);
+	string encoded = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
 
 	try {
-		send(getThreadTid(to_thread_name), b64ed);
+		send(getThreadTid(to_thread_name), encoded);
 	} catch (Throwable err) {
 		prints_error("Failed to send message to %s, %s", to_thread_name, err);
 	}
 }
 
-JSONObject getThreadMessage(Variant data, ref string message_type) {
-	JSONObject jsoned;
-	try {
-		jsoned = decodeMessage(data);
-	} catch (Exception err) {
-		prints_error("Failed to decode message %s", err);
+MessageHolder getThreadMessage(Variant data) {
+	import cbor : decodeCborSingle;
+	import std.base64 : Base64;
+	import std.conv : to;
+	import std.algorithm : canFind;
+
+	// NOTE: data may be string, char[], or immutable(char[]), so just assume string
+	string encoded = data.to!string;
+
+	// Length < "00000:A"
+	if (encoded.length < 7) {
+		return MessageHolder.init;
+	// Missing :
+	} else if (encoded[5] != ':') {
+		return MessageHolder.init;
 	}
 
-	if (jsoned && "type" in jsoned && jsoned["type"].type == JSONType.String) {
-		message_type = jsoned["type"].asString;
+	// Validate size prefix
+	immutable char[] NUMBERS = "0123456789";
+	foreach (n ; encoded[0 .. 5]) {
+		if (! NUMBERS.canFind(n)) {
+			return MessageHolder.init;
+		}
 	}
-	return jsoned;
+
+	// Validate base64 payload
+	immutable char[] CODES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	foreach (n ; encoded[6 .. $]) {
+		if (! CODES.canFind(n)) {
+			return MessageHolder.init;
+		}
+	}
+
+	int len = encoded[0 .. 5].to!int;
+	//print("!!!!!!!!!!<<<<<<<< len: %s", len);
+	ubyte[] b64ed = cast(ubyte[]) encoded[6 .. $];
+	//print("!!!!!!!!!!<<<<<<<< b64ed: %s", b64ed);
+
+	if (len != b64ed.length) {
+		return MessageHolder.init;
+	}
+
+	// UnBase64 the blob
+	ubyte[] blob = cast(ubyte[]) Base64.decode(b64ed);
+
+	auto message_holder = decodeCborSingle!MessageHolder(blob);
+	return message_holder;
 }
 
 interface IWorker {
-	bool onMessage(string message_type, JSONObject jsoned);
+	bool onMessage(MessageHolder message_holder);
 	void onAfterMessage();
 }
 
@@ -149,13 +213,11 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 
 				// Get a cb to run the onMessage
 				auto cb = delegate(Variant data) {
-					string message_type;
-					JSONObject jsoned = getThreadMessage(data, message_type);
-					if (jsoned is null) return;
-					scope (exit) if (jsoned) Delete(jsoned);
+					MessageHolder holder = getThreadMessage(data);
+					if (holder is MessageHolder.init) return;
 
 					//prints("!!!!!!!! got message %s", message_type);
-					is_running = worker.onMessage(message_type, jsoned);
+					is_running = worker.onMessage(holder);
 				};
 
 				// If ms is max, then block forever waiting for messages
@@ -177,4 +239,4 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 
 private:
 
-shared size_t _next_fiber_id;
+shared size_t _next_message_id;
