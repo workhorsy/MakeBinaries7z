@@ -10,7 +10,6 @@ unittest {
 	import helpers;
 	import pack;
 	import unpack;
-	import smol;
 	import std.file : dirEntries, SpanMode, isDir, isFile, remove, rmdirRecurse, exists, mkdir, getSize;
 
 	describe("make-binaries-7z",

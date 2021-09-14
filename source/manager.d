@@ -12,7 +12,6 @@ import dispatch;
 import chunker;
 import pack;
 import unpack;
-import smol;
 
 import core.thread.osthread : Thread;
 import dlib.serialization.json : JSONObject;

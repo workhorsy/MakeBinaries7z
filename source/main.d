@@ -3,7 +3,7 @@
 // Recompresses directories of files to 7z
 // https://github.com/workhorsy/smol
 
-import smol;
+
 import global;
 import helpers;
 import messages;

@@ -5,13 +5,14 @@
 
 module helpers;
 
+import file_type;
 import std.traits : isSomeString;
 import std.random : MinstdRand0;
-
 public import std.file : SpanMode;
 public import std.file : DirIterator;
 
 MinstdRand0 g_rand;
+int g_scope_depth = 0;
 
 void initRandom() {
 	import core.stdc.time : time;
@@ -20,6 +21,43 @@ void initRandom() {
 
 	// Seed random number generator
 	g_rand.seed(cast(uint) time(null));
+}
+
+string getScopePadding() {
+	import std.range : repeat, take;
+	import std.array : array, join;
+	return "    ".repeat.take(g_scope_depth).array.join("");
+}
+
+string fileExtensionForType(FileType file_type) {
+	final switch (file_type) {
+		case FileType.SevenZip:
+			return ".7z.smol";
+		case FileType.Zip:
+			return ".zip.smol";
+		case FileType.Binary:
+			return ".bin.smol";
+	}
+}
+
+string getRandomTempDirectory() {
+	import std.random : MinstdRand0, uniform;
+	import std.range : iota;
+	import std.array : array, join, replace;
+	import std.conv : to;
+	import std.file : tempDir;
+	import std.algorithm : map, filter;
+
+	immutable string data = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	string name = iota(0, 10)
+		.map!(n => uniform(0, data.length, g_rand))
+		.map!(n => data[n].to!string)
+		.array()
+		.join("")
+		.replace(`\`, `/`);
+
+	return buildPath(tempDir(), name) ~ `/`;
 }
 
 void prints(string message) {

@@ -6,7 +6,6 @@
 
 import helpers;
 import file_type;
-import smol;
 import compressor;
 
 void unpackFile(string name) {
