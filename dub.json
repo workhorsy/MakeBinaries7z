@@ -1,6 +1,6 @@
 {
 	"name": "smol",
-	"description": "Recompresses directories of files to 7z",
+	"description": "Recursively re compresses directories with lzma2 compression",
 	"authors": [
 		"Matthew Brennan Jones <matthew.brennan.jones@gmail.com>"
 	],

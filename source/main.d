@@ -16,12 +16,16 @@ import unpack;
 import std.concurrency : Tid, thisTid;
 import core.thread.osthread : Thread;
 import core.time : dur;
+
+immutable string VERSION = "0.1";
+
 /*
 Dispatch _dispatch;
 */
 int main(string[] args) {
 	import std.file : exists;
 	import std.getopt : getopt;
+	import std.string : format;
 
 	initRandom();
 /*
@@ -39,29 +43,54 @@ int main(string[] args) {
 	string pack_path = null;
 	string unpack_path = null;
 	bool is_help = false;
+	bool is_version = false;
 	string getopt_error = null;
 	try {
 		auto result = getopt(args,
 		"pack", &pack_path,
-		"unpack", &unpack_path);
+		"unpack", &unpack_path,
+		"version", &is_version);
 		is_help = result.helpWanted;
 	} catch (Exception err) {
 		getopt_error = err.msg;
 		is_help = true;
 	}
 
+	if (is_version) {
+		prints("smol v%s\n".format(VERSION) ~
+		"Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
+		"Licensed under: Boost Software License - Version 1.0\n" ~
+		"Hosted at: https://github.com/workhorsy/smol\n");
+		return 0;
+	}
+
 	// If there was an error, print the help and quit
 	if (is_help) {
 		prints_error(
-		"Make Binaries 7z\n" ~
-		"--pack            Directory to re compress. Required:\n" ~
-		"--unpack          Directory to un re compress. Required:\n" ~
-		"--help            This help information.\n");
+		"smol v%s\n".format(VERSION) ~
+		"Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
+		"Licensed under: Boost Software License - Version 1.0\n" ~
+		"Hosted at: https://github.com/workhorsy/smol\n" ~
+		"\n" ~
+		"Recursively re compresses directories with lzma2 compression\n" ~
+		"    * Requires 7zip\n" ~
+		"    * Files compressed with Zip are re compressed, including Zip files inside Zip files et cetera\n" ~
+		"    * All other files are compressed using lzma2\n" ~
+		"    * After compression, files are broken into 10 MB chunks\n" ~
+		"    * --pack re compressed all files, while --unpack changes all files back to normal\n" ~
+		"\n" ~
+		"usage:\n" ~
+		"smol --pack <dir>\n" ~
+		"smol --unpack <dir>\n" ~
+		"--help    This help information.\n" ~
+		"--version    Program version.\n");
 
 		if (getopt_error) {
 			prints_error("Error: %s", getopt_error);
+			return 1;
+		} else {
+			return 0;
 		}
-		return 1;
 	}
 
 	// Make sure we got path to pack
