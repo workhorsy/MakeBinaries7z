@@ -26,6 +26,6 @@ docs/
 dub.selections.json
 build/
 templates/
-templates_backup/
+templates_backup*/
 temp_test_files/
 temp/

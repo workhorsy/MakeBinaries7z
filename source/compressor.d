@@ -47,12 +47,12 @@ void compress(string in_name, string out_name, FileType file_type) {
 	//prints("Running command: %s", command.join(" "));
 	auto pipes = pipeProcess(command, Redirect.all);
 	//prints("!!!! pid: %s", pipes.pid.processID);
-
+/*
 	// FIXME: Use dispatch instead of this
 	import messages;
 	auto message = MessageMonitorMemoryUsage(Exe7Zip, pipes.pid.processID);
 	sendThreadMessageUnconfirmed("worker", message);
-
+*/
 	// Get output
 	int status = wait(pipes.pid);
 	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();
@@ -74,12 +74,12 @@ void uncompress(string in_name, string out_name) {
 	//prints("Running command: %s", command.join(" "));
 	auto pipes = pipeProcess(command, Redirect.all);
 	//prints("!!!! pid: %s", pipes.pid.processID);
-
+/*
 	// FIXME: Use dispatch instead of this
 	import messages;
 	auto message = MessageMonitorMemoryUsage(Exe7Zip, pipes.pid.processID);
 	sendThreadMessageUnconfirmed("worker", message);
-
+*/
 	// Get output
 	int status = wait(pipes.pid);
 	string[] output = pipes.stdout.byLine.map!(l => l.idup).array();

@@ -16,25 +16,25 @@ import unpack;
 import std.concurrency : Tid, thisTid;
 import core.thread.osthread : Thread;
 import core.time : dur;
-
+/*
 Dispatch _dispatch;
-
+*/
 int main(string[] args) {
 	import std.file : exists;
 	import std.getopt : getopt;
 
 	initRandom();
-
+/*
 	setThreadName("main", thisTid());
 	scope (exit) removeThreadName("main");
-
+*/
 	// Change the dir to the location of the current exe
 	//chdir(pathDirName(args[0]));
-
+/*
 	_dispatch = new Dispatch("main");
 	auto worker = new Worker();
 	auto manager = new Manager();
-
+*/
 	// Get the options
 	string pack_path = null;
 	string unpack_path = null;
@@ -86,25 +86,33 @@ int main(string[] args) {
 		prints_error(`Error: unpack or pack path required`);
 		return 1;
 	}
-
+/*
 	// FIXME: Wait for workers to start
 	Thread.sleep(dur!("seconds")(3));
+*/
 
 	import chunker;
 	if (pack_path) {
+/*
 		auto b = _dispatch.packPath(pack_path);
 		_dispatch.await(b);
-//		packDir(pack_path, true);
-//		chunkDirFiles(pack_path);
+*/
+		packDir(pack_path, true);
+		chunkDirFiles(pack_path);
 	} else if (unpack_path) {
+/*
 		auto b = _dispatch.unpackPath(unpack_path);
 		_dispatch.await(b);
-//		unChunkDirFiles(unpack_path);
-//		unpackDir(unpack_path, true);
+*/
+		unChunkDirFiles(unpack_path);
+		unpackDir(unpack_path, true);
 	}
 
 	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+/*
 	sendThreadMessageUnconfirmed("worker", MessageStop());
 	sendThreadMessageUnconfirmed("manager", MessageStop());
 	return manager._retval;
+*/
+	return 0;
 }
