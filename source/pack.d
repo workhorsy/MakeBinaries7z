@@ -12,8 +12,6 @@ void packFile(string name, FileType file_type) {
 	import std.file : rename, remove, rmdirRecurse, exists, tempDir;
 	import std.string : format;
 
-	g_scope_depth++;
-	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
 /*
 	// Delete the out file
@@ -31,18 +29,18 @@ void packFile(string name, FileType file_type) {
 	string path_dir = pathDirName(full_path);
 	string path_base = pathBaseName(full_path);
 	string temp_dir = getRandomTempDirectory();//"%s.xxx".format(path_base);
-	prints("!!!!!! temp_dir: %s", temp_dir);
+	//prints("!!!!!! temp_dir: %s", temp_dir);
 	string out_file = "%s%s".format(path_base, fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, path_base);
+	prints("%s%s", padding, name);
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 
 	packDir(temp_dir, false);
 
 	// Compress to 7z
-	prints("%sCompressing: %s", padding, out_file);
+	//prints("%sCompressing: %s", padding, out_file);
 	chdir(temp_dir);
 	compress("*", out_file, FileType.SevenZip);
 
@@ -65,9 +63,16 @@ void packDir(string path, bool is_root_dir) {
 	import std.file : dirEntries, SpanMode, isDir, remove, exists;
 	import std.string : format;
 
+	string padding = getScopePadding();
+
+	if (is_root_dir) {
+		padding = getScopePadding();
+		prints("%sPacking files:", padding);
+	}
+
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
-	string padding = getScopePadding();
+	padding = getScopePadding();
 
 	foreach (string name; dirEntries(path, SpanMode.depth)) {
 		name = name.replace(`\`, `/`);

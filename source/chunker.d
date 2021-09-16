@@ -14,6 +14,13 @@ void chunkDirFiles(string path) {
 	import std.algorithm : filter, map, sort;
 	import natcmp : comparePathsNaturalSort;
 
+	string padding = getScopePadding();
+	prints("%sBreaking files into chunks:", padding);
+
+	g_scope_depth++;
+	scope (exit) g_scope_depth--;
+	padding = getScopePadding();
+
 	// Get all the smol files in natural sorted order
 	auto names = dirEntries(path, SpanMode.depth)
 		.filter!(n => isFile(n))
@@ -25,7 +32,7 @@ void chunkDirFiles(string path) {
 
 	immutable size_t SIZE = 1024 * 1024 * 10; // 10 MB
 	foreach (string name ; names) {
-		//prints("?????? chunking: %s", name);
+		prints("%s%s", padding, name);
 		auto f = File(name, "rb");
 
 		size_t i = 0;
@@ -51,6 +58,13 @@ void unChunkDirFiles(string path) {
 	import std.array : array, replace;
 	import natcmp : comparePathsNaturalSort;
 
+	string padding = getScopePadding();
+	prints("%sCombining file chunks:", padding);
+
+	g_scope_depth++;
+	scope (exit) g_scope_depth--;
+	padding = getScopePadding();
+
 	auto file_ext = ctRegex!(`\.smol\.(\d+)$`);
 
 	// Get all the smol files in natural sorted order
@@ -63,7 +77,7 @@ void unChunkDirFiles(string path) {
 		.sort!(comparePathsNaturalSort);
 
 	foreach (string name; names) {
-		//prints("?????? unchunking: %s", name);
+		prints("%s%s", padding, name);
 
 		string i = name.after(".smol.");
 		string base_name = name[0 .. $ - i.length - 1];

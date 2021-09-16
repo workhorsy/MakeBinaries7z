@@ -108,7 +108,7 @@ int main(string[] args) {
 		unpackDir(unpack_path, true);
 	}
 
-	prints("Done!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	prints("smol done");
 /*
 	sendThreadMessageUnconfirmed("worker", MessageStop());
 	sendThreadMessageUnconfirmed("manager", MessageStop());

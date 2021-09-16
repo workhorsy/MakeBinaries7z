@@ -14,8 +14,6 @@ void unpackFile(string name) {
 	import std.traits : EnumMembers;
 	import std.file : rename, tempDir;
 
-	g_scope_depth++;
-	scope (exit) g_scope_depth--;
 	string padding = getScopePadding();
 /*
 	// Delete the out file
@@ -33,7 +31,7 @@ void unpackFile(string name) {
 	string path_dir = pathDirName(full_path);
 	string path_base = pathBaseName(full_path);
 	string temp_dir = getRandomTempDirectory();//"%s.xxx".format(path_base);
-	prints("!!!!!! temp_dir: %s", temp_dir);
+	//prints("!!!!!! temp_dir: %s", temp_dir);
 	//prints("!!!!!! path_base: %s", path_base);
 
 	// Get the original file name and type based on the .blah.smol
@@ -42,21 +40,21 @@ void unpackFile(string name) {
 	foreach (n ; EnumMembers!FileType) {
 		string extension = fileExtensionForType(n);
 		if (path_base.endsWith(extension)) {
-			prints("!!!!! extension: %s", extension);
+			//prints("!!!!! extension: %s", extension);
 			out_file = path_base[0 .. $ - extension.length];
-			prints("!!!!! out_file: %s", out_file);
+			//prints("!!!!! out_file: %s", out_file);
 			file_type = n;
 			break;
 		}
 	}
-	prints("!!!!! full_path: %s", full_path);
-	prints("!!!!! out_file: %s", out_file);
+	//prints("!!!!! full_path: %s", full_path);
+	//prints("!!!!! out_file: %s", out_file);
 
 //	prints("!!!!! path_base: %s", path_base);
 //	prints("!!!!! file_type: %s", fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%sUncompressing: %s", padding, path_base);
+	prints("%s%s", padding, name);
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 
@@ -66,7 +64,7 @@ void unpackFile(string name) {
 		case FileType.SevenZip:
 		case FileType.Zip:
 			// Compress to original type
-			prints("%sCompressing: %s", padding, out_file);
+			//prints("%sCompressing: %s", padding, out_file);
 			chdir(temp_dir);
 			compress("*", out_file, file_type);
 
@@ -100,9 +98,16 @@ void unpackDir(string path, bool is_root_dir) {
 	import std.file : dirEntries, SpanMode, isDir;
 	import std.algorithm.searching : endsWith;
 
+	string padding = getScopePadding();
+
+	if (is_root_dir) {
+		padding = getScopePadding();
+		prints("%sUnpacking files:", padding);
+	}
+
 	g_scope_depth++;
 	scope (exit) g_scope_depth--;
-	string padding = getScopePadding();
+	padding = getScopePadding();
 
 	foreach (string name; dirEntries(path, SpanMode.depth)) {
 		name = name.replace(`\`, `/`);
