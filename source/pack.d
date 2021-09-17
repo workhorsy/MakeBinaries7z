@@ -59,9 +59,11 @@ void packFile(string name, FileType file_type) {
 }
 
 void packDir(string path, bool is_root_dir) {
-	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir, remove, exists;
-	import std.string : format;
+	import std.array : array, replace;
+	import std.file : dirEntries, SpanMode, isDir, isFile, remove, exists;
+	import std.string : format, startsWith;
+	import std.algorithm : sort, map, filter, canFind;
+	import natcmp : comparePathsNaturalSort;
 
 	string padding = getScopePadding();
 
@@ -74,12 +76,15 @@ void packDir(string path, bool is_root_dir) {
 	scope (exit) g_scope_depth--;
 	padding = getScopePadding();
 
-	foreach (string name; dirEntries(path, SpanMode.depth)) {
-		name = name.replace(`\`, `/`);
-		//prints("%sScanning: %s", padding, name);
+	auto names = dirEntries(path, SpanMode.depth)
+		.filter!(n => isFile(n))
+		.map!(n => n.name)
+		.map!(n => n.replace(`\`, `/`))
+		.filter!(n => ! n.canFind(`/.`))
+		.array()
+		.sort!(comparePathsNaturalSort);
 
-		if (isDir(name)) continue;
-
+	foreach (string name; names) {
 		auto file_type = getFileType(name);
 		final switch (file_type) {
 			case FileType.SevenZip:

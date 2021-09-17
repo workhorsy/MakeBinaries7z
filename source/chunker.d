@@ -11,7 +11,7 @@ void chunkDirFiles(string path) {
 	import std.string : format, endsWith;
 	import std.stdio : File, toFile, chunks;
 	import std.regex : matchFirst, ctRegex;
-	import std.algorithm : filter, map, sort;
+	import std.algorithm : canFind, filter, map, sort;
 	import natcmp : comparePathsNaturalSort;
 
 	string padding = getScopePadding();
@@ -26,6 +26,7 @@ void chunkDirFiles(string path) {
 		.filter!(n => isFile(n))
 		.map!(n => n.name)
 		.map!(n => n.replace(`\`, `/`))
+		.filter!(n => ! n.canFind(`/.`))
 		.filter!(n => n.endsWith(".smol"))
 		.array()
 		.sort!(comparePathsNaturalSort);
@@ -54,7 +55,7 @@ void chunkDirFiles(string path) {
 void unChunkDirFiles(string path) {
 	import std.file : dirEntries, SpanMode, isFile, remove, exists, read, append;
 	import std.regex : matchFirst, ctRegex;
-	import std.algorithm : filter, map, sort;
+	import std.algorithm : canFind, filter, map, sort;
 	import std.array : array, replace;
 	import natcmp : comparePathsNaturalSort;
 
@@ -72,6 +73,7 @@ void unChunkDirFiles(string path) {
 		.filter!(n => isFile(n))
 		.map!(n => n.name)
 		.map!(n => n.replace(`\`, `/`))
+		.filter!(n => ! n.canFind(`/.`))
 		.filter!(n => ! n.matchFirst(file_ext).empty)
 		.array()
 		.sort!(comparePathsNaturalSort);

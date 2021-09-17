@@ -94,9 +94,10 @@ void unpackFile(string name) {
 
 
 void unpackDir(string path, bool is_root_dir) {
-	import std.array : replace;
-	import std.file : dirEntries, SpanMode, isDir;
-	import std.algorithm.searching : endsWith;
+	import std.array : array, replace;
+	import std.file : dirEntries, SpanMode, isFile, isDir;
+	import std.algorithm : sort, map, filter, endsWith, canFind;
+	import natcmp : comparePathsNaturalSort;
 
 	string padding = getScopePadding();
 
@@ -109,11 +110,17 @@ void unpackDir(string path, bool is_root_dir) {
 	scope (exit) g_scope_depth--;
 	padding = getScopePadding();
 
-	foreach (string name; dirEntries(path, SpanMode.depth)) {
-		name = name.replace(`\`, `/`);
-		//prints("%sScanning: %s", padding, name.absolutePath());
+	auto names = dirEntries(path, SpanMode.depth)
+		.filter!(n => isFile(n))
+		.map!(n => n.name)
+		.map!(n => n.replace(`\`, `/`))
+		.filter!(n => ! n.canFind(`/.`))
+		.filter!(n => n.endsWith(".smol"))
+		.array()
+		.sort!(comparePathsNaturalSort);
 
-		if (isDir(name) || ! name.endsWith(".smol")) continue;
+	foreach (string name; names) {
+		//prints("%sScanning: %s", padding, name.absolutePath());
 
 		auto file_type = getFileType(name);
 		final switch (file_type) {

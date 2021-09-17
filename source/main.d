@@ -75,6 +75,7 @@ int main(string[] args) {
 		"Recursively re compresses directories with lzma2 compression\n" ~
 		"    * Requires 7zip\n" ~
 		"    * Files compressed with Zip are re compressed, including Zip files inside Zip files et cetera\n" ~
+		"    * Directories that start with a \".\" are ignored\n" ~
 		"    * All other files are compressed using lzma2\n" ~
 		"    * After compression, files are broken into 10 MB chunks\n" ~
 		"    * --pack re compressed all files, while --unpack changes all files back to normal\n" ~
