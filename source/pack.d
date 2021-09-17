@@ -102,6 +102,7 @@ void packDir(string path, bool is_root_dir) {
 				break;
 			case FileType.Binary:
 				if (is_root_dir) {
+					prints("%s%s", padding, name);
 					string prev_dir = getcwd().absolutePath();
 					string dir_name = pathDirName(name);
 					string file_name = pathBaseName(name);
