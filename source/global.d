@@ -1,6 +1,6 @@
 // Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
 // Boost Software License - Version 1.0
-// Recompresses directories of files to 7z
+// Recursively re compresses directories with lzma2 compression
 // https://github.com/workhorsy/smol
 
 import std.stdint;
