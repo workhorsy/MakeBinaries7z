@@ -92,6 +92,14 @@ void packDir(string path, bool is_root_dir) {
 			case FileType.Zip:
 				packFile(name, file_type);
 				break;
+			case FileType.XZ:
+				break;
+			case FileType.GZip:
+				packFile(name, file_type);
+				break;
+			case FileType.BZip2:
+				packFile(name, file_type);
+				break;
 			case FileType.Binary:
 				if (is_root_dir) {
 					string prev_dir = getcwd().absolutePath();

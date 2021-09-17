@@ -31,6 +31,12 @@ unittest {
 			"test_data/aaa/bbb/xxx.zip".exists.shouldEqual(true);
 			"test_data/aaa/bbb.txt".exists.shouldEqual(true);
 			"test_data/aaa/bbb.zip".exists.shouldEqual(true);
+
+			"test_data/aaa/formats/zzz.7z".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.bz2".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.gz".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.xz".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.zip".exists.shouldEqual(true);
 		}),
 		after(delegate() {
 			chdir("..");
@@ -65,6 +71,13 @@ unittest {
 			"test_data/aaa/bbb/xxx.zip.zip.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb.txt.bin.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb.zip.zip.smol".exists.shouldEqual(true);
+
+			"test_data/aaa/formats".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.7z".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.bz2.bzip2.smol".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.gz.gzip.smol".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.txt.xz".exists.shouldEqual(true);
+			"test_data/aaa/formats/zzz.zip.zip.smol".exists.shouldEqual(true);
 		}),
 	);
 }

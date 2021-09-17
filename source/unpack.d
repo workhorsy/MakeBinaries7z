@@ -71,6 +71,26 @@ void unpackFile(string name) {
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			//prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
+		case FileType.XZ:
+			break;
+		case FileType.GZip:
+			// Compress to original type
+			//prints("%sCompressing: %s", padding, out_file);
+			chdir(temp_dir);
+			compress("*", out_file, file_type);
+
+			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			//prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			break;
+		case FileType.BZip2:
+			// Compress to original type
+			//prints("%sCompressing: %s", padding, out_file);
+			chdir(temp_dir);
+			compress("*", out_file, file_type);
+
+			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			//prints("???? rename from:%s, to:%s", buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
+			break;
 		case FileType.Binary:
 			// Rename to original file name
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
@@ -128,6 +148,12 @@ void unpackDir(string path, bool is_root_dir) {
 				unpackFile(name);
 				break;
 			case FileType.Zip:
+				break;
+			case FileType.XZ:
+				break;
+			case FileType.GZip:
+				break;
+			case FileType.BZip2:
 				break;
 			case FileType.Binary:
 				break;

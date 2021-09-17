@@ -35,6 +35,12 @@ string fileExtensionForType(FileType file_type) {
 			return ".7z.smol";
 		case FileType.Zip:
 			return ".zip.smol";
+		case FileType.XZ:
+			return ".xz.smol";
+		case FileType.GZip:
+			return ".gzip.smol";
+		case FileType.BZip2:
+			return ".bzip2.smol";
 		case FileType.Binary:
 			return ".bin.smol";
 	}

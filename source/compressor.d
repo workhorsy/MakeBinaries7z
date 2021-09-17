@@ -37,6 +37,15 @@ void compress(string in_name, string out_name, FileType file_type) {
 		case FileType.SevenZip:
 			compression_type = "-t7z";
 			break;
+		case FileType.XZ:
+			compression_type = "-tXZ";
+			break;
+		case FileType.GZip:
+			compression_type = "-tGZip";
+			break;
+		case FileType.BZip2:
+			compression_type = "-tBZip2";
+			break;
 		case FileType.Binary:
 			compression_type = "";
 			break;
