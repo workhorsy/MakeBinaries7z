@@ -52,23 +52,8 @@ void unpackFile(string name) {
 	unpackDir(temp_dir, false);
 
 	final switch (file_type) {
-		case FileType.SevenZip:
 		case FileType.Zip:
-			// Compress to original type
-			chdir(temp_dir);
-			compress("*", out_file, file_type);
-
-			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
-			break;
-		case FileType.XZ:
-			break;
 		case FileType.GZip:
-			// Compress to original type
-			chdir(temp_dir);
-			compress("*", out_file, file_type);
-
-			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
-			break;
 		case FileType.BZip2:
 			// Compress to original type
 			chdir(temp_dir);
@@ -76,6 +61,11 @@ void unpackFile(string name) {
 
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 			break;
+
+		case FileType.SevenZip:
+		case FileType.XZ:
+			break;
+
 		case FileType.Binary:
 			// Rename to original file name
 			rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
@@ -128,16 +118,16 @@ void unpackDir(string path, bool is_root_dir) {
 
 		auto file_type = getFileType(name);
 		final switch (file_type) {
-			case FileType.SevenZip:
-				unpackFile(name);
-				break;
 			case FileType.Zip:
-				break;
-			case FileType.XZ:
 				break;
 			case FileType.GZip:
 				break;
 			case FileType.BZip2:
+				break;
+			case FileType.SevenZip:
+				unpackFile(name);
+				break;
+			case FileType.XZ:
 				break;
 			case FileType.Binary:
 				break;

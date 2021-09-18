@@ -85,20 +85,18 @@ void packDir(string path, bool is_root_dir) {
 
 	foreach (string name; names) {
 		auto file_type = getFileType(name);
+		//prints("!!!! file_type: %s", file_type);
 		final switch (file_type) {
-			case FileType.SevenZip:
-				break;
 			case FileType.Zip:
-				packFile(name, file_type);
-				break;
-			case FileType.XZ:
-				break;
 			case FileType.GZip:
-				packFile(name, file_type);
-				break;
 			case FileType.BZip2:
 				packFile(name, file_type);
 				break;
+
+			case FileType.SevenZip:
+			case FileType.XZ:
+				break;
+
 			case FileType.Binary:
 				if (is_root_dir) {
 					prints("%s%s", padding, name);
