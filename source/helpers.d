@@ -47,7 +47,7 @@ string fileExtensionForType(FileType file_type) {
 }
 
 string getRandomTempDirectory() {
-	import std.random : MinstdRand0, uniform;
+	import std.random : uniform;
 	import std.range : iota;
 	import std.array : array, join, replace;
 	import std.conv : to;

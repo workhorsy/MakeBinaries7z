@@ -28,8 +28,7 @@ void packFile(string name, FileType file_type) {
 	string full_path = absolutePath(name);
 	string path_dir = pathDirName(full_path);
 	string path_base = pathBaseName(full_path);
-	string temp_dir = getRandomTempDirectory();//"%s.xxx".format(path_base);
-	//prints("!!!!!! temp_dir: %s", temp_dir);
+	string temp_dir = getRandomTempDirectory();
 	string out_file = "%s%s".format(path_base, fileExtensionForType(file_type));
 
 	// Extract to temp directory
@@ -106,8 +105,6 @@ void packDir(string path, bool is_root_dir) {
 					string prev_dir = getcwd().absolutePath();
 					string dir_name = pathDirName(name);
 					string file_name = pathBaseName(name);
-					//prints("!!!!! dir_name: %s", dir_name);
-					//prints("!!!!! file_name: %s", file_name);
 					chdir(dir_name);
 					compress(file_name, "%s%s".format(file_name, fileExtensionForType(FileType.Binary)), FileType.SevenZip);
 					chdir(prev_dir);
