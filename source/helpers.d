@@ -129,12 +129,6 @@ void copyDirTree(string from_path, string to_path) {
 	assert(exe.status == 0);
 }
 
-// FIXME: Have it change all path seps from \ to /
-DirIterator dirEntries(string path, SpanMode mode, bool followSymlink = true) {
-	import std.file : dirEntries;
-	return dirEntries(path, mode, followSymlink);
-}
-
 string absolutePath(string path) {
 	import std.path : absolutePath;
 	import std.array : replace;
@@ -178,15 +172,6 @@ string toPosixPath(string path) {
 		path ~= `/`;
 	}
 	return path;
-}
-
-auto sortBy(string field_name, T)(T things) {
-	import std.algorithm : sort;
-	import std.string : format;
-
-	alias sortFilter = (a, b) => mixin("a.%s < b.%s".format(field_name, field_name));
-
-	return things.sort!(sortFilter);
 }
 
 S before(S)(S value, S separator) if (isSomeString!S) {
