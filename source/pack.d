@@ -33,7 +33,7 @@ void packFile(string name, FileType file_type) {
 	string out_file = "%s%s".format(path_base, fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%s%s", padding, name);
+	prints("%s%s", padding, stripTempDirectory(name));
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 

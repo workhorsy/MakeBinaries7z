@@ -66,6 +66,19 @@ string getRandomTempDirectory() {
 	return buildPath(tempDir(), name) ~ `/`;
 }
 
+string stripTempDirectory(string name) {
+	import std.file : tempDir;
+	import std.array : replace;
+	import std.string : startsWith;
+
+	string temp = tempDir().replace(`\`, `/`);
+	if (name.startsWith(temp)) {
+		name = name[temp.length .. $];
+		name = name[11 .. $];
+	}
+	return name;
+}
+
 void prints(string message) {
 	import std.stdio : stdout;
 	stdout.writeln(message); stdout.flush();

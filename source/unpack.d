@@ -54,7 +54,7 @@ void unpackFile(string name) {
 //	prints("!!!!! file_type: %s", fileExtensionForType(file_type));
 
 	// Extract to temp directory
-	prints("%s%s", padding, name);
+	prints("%s%s", padding, stripTempDirectory(name));
 	chdir(path_dir);
 	uncompress(path_base, temp_dir);
 
