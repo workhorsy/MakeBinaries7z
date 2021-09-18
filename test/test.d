@@ -32,6 +32,9 @@ unittest {
 			"test_data/aaa/bbb.txt".exists.shouldEqual(true);
 			"test_data/aaa/bbb.zip".exists.shouldEqual(true);
 
+			"test_data/aaa/buzz.zip".exists.shouldEqual(true);
+			"test_data/aaa/file_inside_file_3.zip".exists.shouldEqual(true);
+
 			"test_data/aaa/formats/zzz.7z".exists.shouldEqual(true);
 			"test_data/aaa/formats/zzz.txt.bz2".exists.shouldEqual(true);
 			"test_data/aaa/formats/zzz.txt.gz".exists.shouldEqual(true);
@@ -71,6 +74,9 @@ unittest {
 			"test_data/aaa/bbb/xxx.zip.zip.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb.txt.bin.smol".exists.shouldEqual(true);
 			"test_data/aaa/bbb.zip.zip.smol".exists.shouldEqual(true);
+
+			"test_data/aaa/buzz.zip.zip.smol".exists.shouldEqual(true);
+			"test_data/aaa/file_inside_file_3.zip.zip.smol".exists.shouldEqual(true);
 
 			"test_data/aaa/formats".exists.shouldEqual(true);
 			"test_data/aaa/formats/zzz.7z".exists.shouldEqual(true);
