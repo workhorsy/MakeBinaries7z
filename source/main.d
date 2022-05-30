@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
+// Copyright (c) 2021-2022 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>
 // Boost Software License - Version 1.0
 // Recursively re compresses directories with lzma2 compression
 // https://github.com/workhorsy/smol
@@ -58,7 +58,7 @@ int main(string[] args) {
 
 	if (is_version) {
 		prints("smol v%s\n".format(VERSION) ~
-		"Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
+		"Copyright (c) 2021-2022 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
 		"Licensed under: Boost Software License - Version 1.0\n" ~
 		"Hosted at: https://github.com/workhorsy/smol\n");
 		return 0;
@@ -68,7 +68,7 @@ int main(string[] args) {
 	if (is_help) {
 		prints_error(
 		"smol v%s\n".format(VERSION) ~
-		"Copyright (c) 2021 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
+		"Copyright (c) 2021-2022 Matthew Brennan Jones <matthew.brennan.jones@gmail.com>\n" ~
 		"Licensed under: Boost Software License - Version 1.0\n" ~
 		"Hosted at: https://github.com/workhorsy/smol\n" ~
 		"\n" ~
