@@ -5,7 +5,6 @@
 
 import std.stdint;
 
-public import dlib.core.memory : New, Delete;
 
 alias int8_t    s8;
 alias int16_t   s16;

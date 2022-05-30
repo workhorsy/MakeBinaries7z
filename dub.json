@@ -17,7 +17,6 @@
 			"importPaths": ["source/"],
 			"mainSourceFile": "source/main.d",
 			"dependencies": {
-				"dlib": "~>0.22.0",
 				"natcmp": "~>1.3.2",
 				"cbor-d": "~>0.5.5"
 			}
@@ -30,7 +29,6 @@
 			"excludedSourceFiles": ["source/main.d"],
 			"mainSourceFile": "test/test.d",
 			"dependencies": {
-				"dlib": "~>0.22.0",
 				"natcmp": "~>1.3.2",
 				"cbor-d": "~>0.5.5",
 				"bdd": "~>3.1.0"
