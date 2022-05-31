@@ -11,12 +11,12 @@ import core.thread.osthread : Thread;
 import core.time : dur;
 
 
-class Worker : IWorker {
+class Worker : IMessageThread {
 	bool _is_running = false;
 	int[] _pids;
 
 	this() {
-		onMessages("worker", 0, this);
+		startMessageThread("worker", 0, this);
 		_is_running = true;
 	}
 

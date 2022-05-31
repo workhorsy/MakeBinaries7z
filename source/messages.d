@@ -194,14 +194,12 @@ MessageHolder getThreadMessage(Variant data) {
 	return message_holder;
 }
 
-// FIXME: Rename to IMessageThread
-interface IWorker {
+interface IMessageThread {
 	bool onMessage(MessageHolder message_holder);
 	void onAfterMessage();
 }
 
-// FIXME: Rename to startMessageThread
-void onMessages(string name, ulong receive_ms, IWorker worker) {
+void startMessageThread(string name, ulong receive_ms, IMessageThread message_thread) {
 	spawn(function(string _name, ulong _receive_ms, size_t _ptr) {
 		prints("!!!!!!!!!!!!!!!! %s started ...............", _name);
 
@@ -212,9 +210,9 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 			bool is_running = true;
 			while (is_running) {
 
-				// Get the actual worker from the pointer
+				// Get the actual message thread from the pointer
 				void* ptr = cast(void*) _ptr;
-				IWorker worker = cast(IWorker) ptr;
+				IMessageThread message_thread = cast(IMessageThread) ptr;
 
 				// Get a cb to run the onMessage
 				auto cb = delegate(Variant data) {
@@ -222,7 +220,7 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 					if (holder is MessageHolder.init) return;
 
 					//prints("!!!!!!!! got message %s", message_type);
-					is_running = worker.onMessage(holder);
+					is_running = message_thread.onMessage(holder);
 				};
 
 				// If ms is max, then block forever waiting for messages
@@ -234,12 +232,12 @@ void onMessages(string name, ulong receive_ms, IWorker worker) {
 				}
 
 				// Run the after message cb
-				worker.onAfterMessage();
+				message_thread.onAfterMessage();
 			}
 		} catch (Throwable err) {
 			prints_error("(%s) thread threw: %s", _name, err);
 		}
-	}, name, receive_ms, cast(size_t) (cast(void*) worker));
+	}, name, receive_ms, cast(size_t) (cast(void*) message_thread));
 }
 
 private:

@@ -14,14 +14,14 @@ import unpack;
 import core.thread.osthread : Thread;
 
 
-class Manager : IWorker {
+class Manager : IMessageThread {
 	bool _is_running = false;
 	int _retval = 0;
 	Dispatch _dispatch;
 
 	this() {
 		_dispatch = new Dispatch("manager");
-		onMessages("manager", ulong.max, this);
+		startMessageThread("manager", ulong.max, this);
 		_is_running = true;
 	}
 
