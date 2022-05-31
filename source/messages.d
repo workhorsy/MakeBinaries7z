@@ -11,6 +11,7 @@ import std.concurrency : Tid, thisTid, spawn, receive, receiveTimeout;
 import std.variant : Variant;
 import core.thread : msecs;
 
+// FIXME: Rename to EncodedMessage
 struct MessageHolder {
 	string message_type;
 	ubyte[] message;
@@ -25,6 +26,8 @@ struct MessageHolder {
 	}
 }
 
+// FIXME: Move these structs out of this module, because they
+// are app specific
 struct MessageStop {
 }
 
@@ -191,11 +194,13 @@ MessageHolder getThreadMessage(Variant data) {
 	return message_holder;
 }
 
+// FIXME: Rename to IMessageThread
 interface IWorker {
 	bool onMessage(MessageHolder message_holder);
 	void onAfterMessage();
 }
 
+// FIXME: Rename to startMessageThread
 void onMessages(string name, ulong receive_ms, IWorker worker) {
 	spawn(function(string _name, ulong _receive_ms, size_t _ptr) {
 		prints("!!!!!!!!!!!!!!!! %s started ...............", _name);
