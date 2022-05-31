@@ -8,9 +8,12 @@ import helpers;
 import file_type;
 import compressor;
 
+string[string] _hashes;
+
 void packFile(string name, FileType file_type) {
 	import std.file : rename, remove, rmdirRecurse, exists, tempDir;
 	import std.string : format;
+	import sha256sum;
 
 	string padding = getScopePadding();
 /*
@@ -42,6 +45,13 @@ void packFile(string name, FileType file_type) {
 	//prints("%sCompressing: %s", padding, out_file);
 	chdir(temp_dir);
 	compress("*", out_file, FileType.SevenZip);
+	string hash = getSha256Sum(out_file);
+	/*
+	if (hash in _hashes) {
+		prints("%s!!!! Same file %s and %s", padding, out_file, _hashes[hash]);
+	}
+	*/
+	_hashes[hash] = out_file;
 
 	rename(buildPath(temp_dir, out_file), buildPath(path_dir, out_file));
 	chdir(original_dir);
@@ -63,6 +73,7 @@ void packDir(string path, bool is_root_dir) {
 	import std.string : format, startsWith;
 	import std.algorithm : sort, map, filter, canFind;
 	import natcmp : comparePathsNaturalSort;
+	import sha256sum;
 
 	string padding = getScopePadding();
 
@@ -105,6 +116,14 @@ void packDir(string path, bool is_root_dir) {
 					string file_name = pathBaseName(name);
 					chdir(dir_name);
 					compress(file_name, "%s%s".format(file_name, fileExtensionForType(FileType.Binary)), FileType.SevenZip);
+					string hash = getSha256Sum(file_name);
+					/*
+					if (hash in _hashes) {
+						prints("%s!!!! Same file %s and %s", padding, file_name, _hashes[hash]);
+					}
+					*/
+					_hashes[hash] = file_name;
+
 					chdir(prev_dir);
 
 					// Delete the original binary file
