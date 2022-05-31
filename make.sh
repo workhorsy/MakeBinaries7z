@@ -71,6 +71,8 @@ elif [[ "$1" == "example" ]]; then
 elif [[ "$1" == "clean" ]]; then
 	clean
 else
-	echo "./make.sh build - build smol"
-	echo "./make.sh clean - remove generated files"
+	echo "./make.sh build - Build smol"
+	echo "./make.sh test - Run test suite"
+	echo "./make.sh example - Build and run example"
+	echo "./make.sh clean - Remove generated files"
 fi
