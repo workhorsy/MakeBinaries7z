@@ -11,14 +11,14 @@ import std.concurrency : Tid, thisTid, spawn, receive, receiveTimeout;
 import std.variant : Variant;
 import core.thread : msecs;
 
-// FIXME: Rename to EncodedMessage
-struct MessageHolder {
+struct EncodedMessage {
 	string message_type;
 	ubyte[] message;
 	size_t mid;
 	string from_tid;
 	string to_tid;
 
+	// FIXME: Move this to be next to encode
 	T decodeMessage(T)() {
 		import cbor : decodeCborSingle;
 
@@ -88,27 +88,29 @@ size_t sendThreadMessage(MessageType)(string from_thread_name, string to_thread_
 		throw new Exception(`No thread with name "%s" found`.format(to_thread_name));
 	}
 
-	// Convert the message to a blob
+	// Message -> message cbor
 	auto message_buffer = appender!(ubyte[])();
 	encodeCbor(message_buffer, message);
-	ubyte[] message_blob = message_buffer.data;
+	ubyte[] message_cbor = message_buffer.data;
 
-	// Get a message holder
+	// message cbor -> EncodedMessage
 	size_t mid = _next_message_id.atomicOp!"+="(1);
 	string from_tid = from_thread_name;
 	string message_type = MessageType.stringof;
-	auto holder = MessageHolder(message_type, message_blob, mid, from_tid);
+	auto encoded = EncodedMessage(message_type, message_cbor, mid, from_tid);
 
-	// Convert the holder to a blob
-	auto holder_buffer = appender!(ubyte[])();
-	encodeCbor(holder_buffer, holder);
-	ubyte[] holder_blob = holder_buffer.data;
+	// EncodedMessage -> encoded cbor
+	auto encoded_buffer = appender!(ubyte[])();
+	encodeCbor(encoded_buffer, encoded);
+	ubyte[] encoded_cbor = encoded_buffer.data;
 
-	// Base64 the holder blob
-	string b64ed = Base64.encode(holder_blob);
-	string encoded = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
+	// encoded cbor -> base64ed encoded cbor
+	string b64ed = Base64.encode(encoded_cbor);
 
-	send(target_thread, encoded);
+	// base64ed encoded cbor -> encoded message
+	string encoded_message = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
+
+	send(target_thread, encoded_message);
 	return mid;
 }
 
@@ -120,32 +122,34 @@ void sendThreadMessageUnconfirmed(MessageType)(string to_thread_name, MessageTyp
 	import std.base64 : Base64;
 	import cbor : encodeCbor;
 
-	// Convert the message to a blob
+	// Message -> message cbor
 	auto message_buffer = appender!(ubyte[])();
 	encodeCbor(message_buffer, message);
-	ubyte[] message_blob = message_buffer.data;
+	ubyte[] message_cbor = message_buffer.data;
 
-	// Get a message holder
+	// message cbor -> EncodedMessage
 	string message_type = MessageType.stringof;
-	auto holder = MessageHolder(message_type, message_blob);
+	auto encoded = EncodedMessage(message_type, message_cbor);
 
-	// Convert the holder to a blob
-	auto holder_buffer = appender!(ubyte[])();
-	encodeCbor(holder_buffer, holder);
-	ubyte[] holder_blob = holder_buffer.data;
+	// EncodedMessage -> encoded cbor
+	auto encoded_buffer = appender!(ubyte[])();
+	encodeCbor(encoded_buffer, encoded);
+	ubyte[] encoded_cbor = encoded_buffer.data;
 
-	// Base64 the holder blob
-	string b64ed = Base64.encode(holder_blob);
-	string encoded = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
+	// encoded cbor -> base64ed encoded cbor
+	string b64ed = Base64.encode(encoded_cbor);
+
+	// base64ed encoded cbor -> encoded message
+	string encoded_message = `%.5s:%s`.format(cast(u16) b64ed.length, b64ed);
 
 	try {
-		send(getThreadTid(to_thread_name), encoded);
+		send(getThreadTid(to_thread_name), encoded_message);
 	} catch (Throwable err) {
 		prints_error("Failed to send message to %s, %s", to_thread_name, err);
 	}
 }
 
-MessageHolder getThreadMessage(Variant data) {
+EncodedMessage getThreadMessage(Variant data) {
 	import cbor : decodeCborSingle;
 	import std.base64 : Base64;
 	import std.conv : to;
@@ -156,17 +160,17 @@ MessageHolder getThreadMessage(Variant data) {
 
 	// Length < "00000:A"
 	if (encoded.length < 7) {
-		return MessageHolder.init;
+		return EncodedMessage.init;
 	// Missing :
 	} else if (encoded[5] != ':') {
-		return MessageHolder.init;
+		return EncodedMessage.init;
 	}
 
 	// Validate size prefix
 	immutable char[] NUMBERS = "0123456789";
 	foreach (n ; encoded[0 .. 5]) {
 		if (! NUMBERS.canFind(n)) {
-			return MessageHolder.init;
+			return EncodedMessage.init;
 		}
 	}
 
@@ -174,7 +178,7 @@ MessageHolder getThreadMessage(Variant data) {
 	immutable char[] CODES = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	foreach (n ; encoded[6 .. $]) {
 		if (! CODES.canFind(n)) {
-			return MessageHolder.init;
+			return EncodedMessage.init;
 		}
 	}
 
@@ -184,18 +188,18 @@ MessageHolder getThreadMessage(Variant data) {
 	//print("!!!!!!!!!!<<<<<<<< b64ed: %s", b64ed);
 
 	if (len != b64ed.length) {
-		return MessageHolder.init;
+		return EncodedMessage.init;
 	}
 
 	// UnBase64 the blob
 	ubyte[] blob = cast(ubyte[]) Base64.decode(b64ed);
 
-	auto message_holder = decodeCborSingle!MessageHolder(blob);
-	return message_holder;
+	auto encoded_message = decodeCborSingle!EncodedMessage(blob);
+	return encoded_message;
 }
 
 interface IMessageThread {
-	bool onMessage(MessageHolder message_holder);
+	bool onMessage(EncodedMessage encoded);
 	void onAfterMessage();
 }
 
@@ -216,11 +220,11 @@ void startMessageThread(string name, ulong receive_ms, IMessageThread message_th
 
 				// Get a cb to run the onMessage
 				auto cb = delegate(Variant data) {
-					MessageHolder holder = getThreadMessage(data);
-					if (holder is MessageHolder.init) return;
+					EncodedMessage encoded = getThreadMessage(data);
+					if (encoded is EncodedMessage.init) return;
 
 					//prints("!!!!!!!! got message %s", message_type);
-					is_running = message_thread.onMessage(holder);
+					is_running = message_thread.onMessage(encoded);
 				};
 
 				// If ms is max, then block forever waiting for messages

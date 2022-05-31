@@ -44,17 +44,17 @@ class Dispatch {
 		while (awaiting_mids.length > 0) {
 			receive((Variant data) {
 				//print("<<<<<<<<<< Dispatch.await data %s", data.to!string);
-				MessageHolder holder = getThreadMessage(data);
-				if (holder is MessageHolder.init) return;
+				EncodedMessage encoded = getThreadMessage(data);
+				if (encoded is EncodedMessage.init) return;
 
-				switch (holder.message_type) {
+				switch (encoded.message_type) {
 					case "MessageTaskDone":
-						auto message = holder.decodeMessage!MessageTaskDone();
+						auto message = encoded.decodeMessage!MessageTaskDone();
 						size_t mid = message.mid;
 						awaiting_mids = awaiting_mids.remove!(await_mid => await_mid == mid);
 						break;
 					default:
-						prints_error("!!!! (Dispatch.await) Unexpected message: %s", holder);
+						prints_error("!!!! (Dispatch.await) Unexpected message: %s", encoded);
 				}
 			});
 		}

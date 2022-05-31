@@ -25,28 +25,28 @@ class Manager : IMessageThread {
 		_is_running = true;
 	}
 
-	bool onMessage(MessageHolder message_holder) {
-		switch (message_holder.message_type) {
+	bool onMessage(EncodedMessage encoded) {
+		switch (encoded.message_type) {
 			case "MessageStop":
-				auto message = message_holder.decodeMessage!MessageStop();
+				auto message = encoded.decodeMessage!MessageStop();
 				_is_running = false;
 				break;
 			case "MessagePack":
-				auto message = message_holder.decodeMessage!MessagePack();
+				auto message = encoded.decodeMessage!MessagePack();
 				//prints("!!! pack_path: %s", pack_path);
 				packDir(message.path, true);
 				chunkDirFiles(message.path);
-				_dispatch.taskDone(message_holder.mid, message_holder.from_tid, "packPath");
+				_dispatch.taskDone(encoded.mid, encoded.from_tid, "packPath");
 				break;
 			case "MessageUnpack":
-				auto message = message_holder.decodeMessage!MessageUnpack();
+				auto message = encoded.decodeMessage!MessageUnpack();
 				//prints("!!! unpack_path: %s", unpack_path);
 				unChunkDirFiles(message.path);
 				unpackDir(message.path, true);
-				_dispatch.taskDone(message_holder.mid, message_holder.from_tid, "unpackPath");
+				_dispatch.taskDone(encoded.mid, encoded.from_tid, "unpackPath");
 				break;
 			default:
-				prints_error("!!!! (manager) Unexpected message: %s", message_holder);
+				prints_error("!!!! (manager) Unexpected message: %s", encoded);
 		}
 
 		return _is_running;

@@ -20,18 +20,18 @@ class Worker : IMessageThread {
 		_is_running = true;
 	}
 
-	bool onMessage(MessageHolder message_holder) {
-		switch (message_holder.message_type) {
+	bool onMessage(EncodedMessage encoded) {
+		switch (encoded.message_type) {
 			case "MessageStop":
-				auto message = message_holder.decodeMessage!MessageStop();
+				auto message = encoded.decodeMessage!MessageStop();
 				_is_running = false;
 				return _is_running;
 			case "MessageMonitorMemoryUsage":
-				auto message = message_holder.decodeMessage!MessageMonitorMemoryUsage();
+				auto message = encoded.decodeMessage!MessageMonitorMemoryUsage();
 				_pids ~= message.pid;
 				break;
 			default:
-				prints_error("!!!! (manager) Unexpected message: %s", message_holder);
+				prints_error("!!!! (manager) Unexpected message: %s", encoded);
 		}
 
 		return true;
