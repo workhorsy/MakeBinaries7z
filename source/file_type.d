@@ -15,13 +15,15 @@ enum FileType {
 }
 
 // https://en.wikipedia.org/wiki/List_of_file_signatures
-FileType getFileType(string name) {
+FileType getFileType(string file_name) {
 	import std.stdio : File;
 
 	// Read first 10 bytes of file
-	auto f = File(name, "rb");
 	char[10] header = 0;
-	f.rawRead(header);
+	{
+		auto f = File(file_name, "rb");
+		f.rawRead(header);
+	}
 
 	// Return file type based on magic numbers
 	if (header[0 .. 4] == [0x50, 0x4B, 0x03, 0x04]) {
